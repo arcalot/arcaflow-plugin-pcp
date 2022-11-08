@@ -1,20 +1,22 @@
 [tool.poetry]
-name = "arcaflow-plugin-template-python"
+name = "arcaflow-plugin-pcp"
 version = "0.1.0"
-description = ""
+description = "arcaflow plugin for performance copilot"
 authors = ["Arcalot"]
-license = "Apache-2.0+GPL-2.0-only"
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "pcp_plugin.py", from="."}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-arcaflow-plugin-sdk = "0.9.0"
+arcaflow-plugin-sdk = "^0.9.0"
 
-[tool.poetry.dev-dependencies]
-docformatter = "^1.5.0"
-autoflake = "^1.7.6"
-pydocstyle = "^6.1.1"
-black = "^22.10.0"
+#[tool.poetry.dev-dependencies]
+#docformatter = "^1.5.0"
+#autoflake = "^1.7.6"
+#pydocstyle = "^6.1.1"
+#black = "^22.10.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
