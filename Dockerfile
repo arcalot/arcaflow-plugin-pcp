@@ -15,18 +15,16 @@ ADD https://raw.githubusercontent.com/arcalot/arcaflow-plugin-template-python/ma
 RUN chmod +x /app/pcp_plugin.py #/app/test_pcp_plugin.py
 WORKDIR /app
 
-#RUN pip3 install --upgrade pip
-RUN python3 -m pip install --upgrade pip
-RUN pip3 install poetry==1.1.13
-RUN poetry --version
-RUN poetry config virtualenvs.create false
-RUN poetry install --without dev
+RUN python3.9 -m pip install "poetry>=1.2.2,<1.3"
+RUN python3.9 -m poetry --version
+RUN python3.9 -m poetry config virtualenvs.create false
+RUN python3.9 -m poetry install --without dev
 #USER 1000
 
 #RUN mkdir /htmlcov
 #RUN pip3 install coverage
-#RUN python3 -m coverage run test_example_plugin.py
-#RUN python3 -m coverage html -d /htmlcov --omit=/usr/local/*
+#RUN python3.9 -m coverage run test_example_plugin.py
+#RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
 
 
 ENTRYPOINT ["/app/pcp_plugin.py"]
