@@ -1,9 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 
 import subprocess
 import sys
 import typing
 from arcaflow_plugin_sdk import plugin
+from pcp_schema import (
+    InputParams,
+    StartOutput,
+    PerfOutput,
+    Error,
+)
 
 
 @plugin.step(
@@ -41,14 +47,13 @@ def start_pcp(
     sar_cmd = [
         "/usr/lib64/sa/sa1",
         "1",
-        "&",
     ]
 
     # Start SAR collection
     print("==>> Starting SAR ...")
     try:
         print(
-            subprocess.check_output(
+            subprocess.Popen(
                 sar_cmd,
                 text=True,
                 stderr=subprocess.STDOUT,
@@ -74,11 +79,18 @@ def start_pcp(
     print("==>> Starting pmlogger ...")
     try:
         print(
-            subprocess.check_output(
+            subprocess.run(
                 pmlogger_cmd,
                 text=True,
                 stderr=subprocess.STDOUT,
+                timeout=params.run_duration,
             )
+        )
+        # It should not end itself, so getting here means there was an
+        # error.
+        return "error", Error(
+            result.returncode,
+            result.stdout.decode("utf-8") + result.stderr.decode("utf-8"),
         )
     except subprocess.CalledProcessError as error:
         return "error", Error(
@@ -86,6 +98,10 @@ def start_pcp(
                 error.cmd[0], error.returncode, error.output
             )
         )
+    except subprocess.TimeoutExpired:
+        # Worked as intended. It doesn't end itself, so it finished when it
+        # timed out.
+        return "success", StartOutput()
 
 
 

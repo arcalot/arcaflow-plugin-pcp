@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-
 import typing
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 @dataclass
 class InputParams:
-    pmlogger-interval: typing.Optional[int] = field(
+    run_duration: int
+    pmlogger_interval: typing.Optional[int] = field(
         default=None,
         metadata={
             "name": "pmlogger logging interval",
@@ -17,11 +15,11 @@ class InputParams:
 
 @dataclass
 class StartOutput:
-    start: str
+    pass
 
 @dataclass
 class PerfOutput:
-    pcp-output: typing.Dict[str, typing.Any] = field(
+    pcp_output: typing.Dict[str, typing.Any] = field(
         metadata={
             "name": "PCP output dictionary",
             "description": ("Performance data from PCP provided in a "
