@@ -1,12 +1,12 @@
 #!/usr/bin/env python3.9
 
+import json
 import subprocess
 import sys
 import typing
 from arcaflow_plugin_sdk import plugin
 from pcp_schema import (
     InputParams,
-    StartOutput,
     PerfOutput,
     Error,
 )
@@ -16,11 +16,11 @@ from pcp_schema import (
     id="start-pcp",
     name="Start PCP",
     description="Start the PCP data logging tools",
-    outputs={"success": StartOutput, "error": Error},
+    outputs={"success": PerfOutput, "error": Error},
 )
 def start_pcp(
     params: InputParams,
-) -> typing.Tuple[str, typing.Union[StartOutput, Error]]:
+) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
 
     pcmd_cmd = [
         "/usr/libexec/pcp/lib/pmcd",
@@ -101,19 +101,38 @@ def start_pcp(
     except subprocess.TimeoutExpired:
         # Worked as intended. It doesn't end itself, so it finished when it
         # timed out.
-        return "success", StartOutput()
-
-
-
-#@plugin.step(
-#    id="collect-data",
-#    name="Collect PCP data",
-#    description="Stop the PCP tools and collect the data",
-#    outputs={"success": PerfOutput, "error": Error},
-#)
-#def collect_data(
-#    params: InputParams,
-#) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+        #pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
+        pcp2json_cmd = [
+            "pcp2json",
+            "-a",
+            "pmlogger-out",
+            "-t",
+            "1s",
+            "-c",
+            "pcp2json.conf",
+            ":sar",
+            ":sar-b",
+            ":sar-r",
+            "-E",
+        ]
+        # Start the PCMD daemon
+        print("==>> Converting output to json...")
+        try:
+            pcp_out = (
+                subprocess.check_output(
+                    pcp2json_cmd,
+                    text=True,
+                    stderr=subprocess.STDOUT,
+                )
+            ).strip().split("\n",2)[2]
+            pcp_out_json = json.loads(pcp_out)
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
+            )
+        return "success", PerfOutput(pcp_out_json)
 
 
 
@@ -123,7 +142,6 @@ if __name__ == "__main__":
             plugin.build_schema(
                 # List your step functions here:
                 start_pcp,
-#                collect_data,
             )
         )
     )

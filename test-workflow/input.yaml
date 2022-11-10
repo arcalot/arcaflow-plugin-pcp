@@ -1,0 +1,5 @@
+pmlogger_interval: 1
+sysbench_threads: 2
+sysbench_events: 0
+sysbench_cpumaxprime: 12000
+sysbench_runtime: 10

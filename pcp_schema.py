@@ -14,10 +14,6 @@ class InputParams:
     )
 
 @dataclass
-class StartOutput:
-    pass
-
-@dataclass
 class PerfOutput:
     pcp_output: typing.Dict[str, typing.Any] = field(
         metadata={
