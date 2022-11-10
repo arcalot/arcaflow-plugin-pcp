@@ -40,7 +40,7 @@ steps:
     step: uuid
     input: {}
   pcp:
-    plugin: quay.io/dustinblack/arcaflow-plugin-pcp-test
+    plugin: quay.io/arcalot/arcaflow-plugin-pcp-test:latest
     step: start-pcp
     input:
       pmlogger_interval: !expr $.input.pmlogger_interval
