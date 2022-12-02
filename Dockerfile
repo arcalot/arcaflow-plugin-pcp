@@ -8,7 +8,7 @@ ADD poetry.lock /app
 ADD pyproject.toml /app
 ADD pcp_plugin.py /app
 ADD pcp_schema.py /app
-#ADD test_pcp_plugin.py /app
+ADD test_pcp_plugin.py /app
 ADD pmlogger.conf /app
 ADD pcp2json.conf /app
 ADD https://raw.githubusercontent.com/arcalot/arcaflow-plugin-template-python/main/LICENSE /app
@@ -21,10 +21,10 @@ RUN python3.9 -m poetry config virtualenvs.create false
 RUN python3.9 -m poetry install --without dev
 #USER 1000
 
-#RUN mkdir /htmlcov
-#RUN pip3 install coverage
-#RUN python3.9 -m coverage run test_example_plugin.py
-#RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
+RUN mkdir /htmlcov
+RUN pip3.9 install coverage
+RUN python3.9 -m coverage run test_pcp_plugin.py
+RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
 
 
 ENTRYPOINT ["python3.9", "/app/pcp_plugin.py"]
