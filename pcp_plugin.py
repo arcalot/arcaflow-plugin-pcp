@@ -28,14 +28,10 @@ def start_pcp(
     ]
 
     # Start the PCMD daemon
-    print("==>> Starting PCMD ...")
     try:
-        print(
-            subprocess.check_output(
-                pcmd_cmd,
-                text=True,
-                stderr=subprocess.STDOUT,
-            )
+        subprocess.check_output(
+            pcmd_cmd,
+            text=True,
         )
     except subprocess.CalledProcessError as error:
         return "error", Error(
@@ -49,15 +45,11 @@ def start_pcp(
         "1",
     ]
 
-    # Start SAR collection
-    print("==>> Starting SAR ...")
+    # Start SAR collection in the background
     try:
-        print(
-            subprocess.Popen(
-                sar_cmd,
-                text=True,
-                stderr=subprocess.STDOUT,
-            )
+        subprocess.Popen(
+            sar_cmd,
+            text=True,
         )
     except subprocess.CalledProcessError as error:
         return "error", Error(
@@ -67,7 +59,7 @@ def start_pcp(
         )
 
     pmlogger_cmd = [
-        "pmlogger",
+        "/usr/bin/pmlogger",
         "-c",
         "pmlogger.conf",
         "-t",
@@ -76,15 +68,11 @@ def start_pcp(
     ]
 
     # Start pmlogger
-    print("==>> Starting pmlogger ...")
     try:
-        print(
-            subprocess.run(
-                pmlogger_cmd,
-                text=True,
-                stderr=subprocess.STDOUT,
-                timeout=params.run_duration,
-            )
+        result = subprocess.run(
+            pmlogger_cmd,
+            text=True,
+            timeout=params.run_duration,
         )
         # It should not end itself, so getting here means there was an
         # error.
@@ -101,9 +89,11 @@ def start_pcp(
     except subprocess.TimeoutExpired:
         # Worked as intended. It doesn't end itself, so it finished when it
         # timed out.
-        #pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
+        # Reference command:
+        # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
+        # :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
         pcp2json_cmd = [
-            "pcp2json",
+            "/usr/bin/pcp2json",
             "-a",
             "pmlogger-out",
             "-t",
@@ -115,16 +105,20 @@ def start_pcp(
             ":sar-r",
             "-E",
         ]
-        # Start the PCMD daemon
-        print("==>> Converting output to json...")
+
+        # Convert output to json
         try:
             pcp_out = (
-                subprocess.check_output(
-                    pcp2json_cmd,
-                    text=True,
-                    stderr=subprocess.STDOUT,
+                (
+                    subprocess.check_output(
+                        pcp2json_cmd,
+                        text=True,
+                        stderr=subprocess.STDOUT,
+                    )
                 )
-            ).strip().split("\n",2)[2]
+                .strip()
+                .split("\n", 2)[2]
+            )
             pcp_out_json = json.loads(pcp_out)
         except subprocess.CalledProcessError as error:
             return "error", Error(
@@ -135,12 +129,10 @@ def start_pcp(
         return "success", PerfOutput(pcp_out_json)
 
 
-
 if __name__ == "__main__":
     sys.exit(
         plugin.run(
             plugin.build_schema(
-                # List your step functions here:
                 start_pcp,
             )
         )

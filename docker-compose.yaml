@@ -1,9 +1,10 @@
+---
 version: '3.2'
 services:
   plugin:
-    image: ghcr.io/arcalot/arcaflow-plugin-template
+    image: ghcr.io/arcalot/arcaflow-plugin-pcp
     build: .
     volumes:
-      - source: ./example.yaml
-        target: /config/example.yaml
+      - source: ./pcp_example.yaml
+        target: /config/pcp_example.yaml
         type: bind

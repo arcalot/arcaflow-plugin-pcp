@@ -1,8 +1,14 @@
-# Python Plugin Template Project
+# Python Plugin Performance Copilot
 
-## Image Building
+This plugin runs sar and pmlogger, collects data for the given amount of time,
+and then generates a JSON output file of the results.
 
-You can change this plugin's image version tag in
-`.github/workflows/carpenter.yaml` by editing the
-`IMAGE_TAG` variable, and pushing that change to the
-branch designated in that workflow.
+Build the container:
+```
+docker build . -t arcaflow-metadata-plugin
+```
+
+Run with the provided example input:
+```
+cat pcp_example.py | docker run -i --rm arcaflow-metadata-plugin -f -
+```
