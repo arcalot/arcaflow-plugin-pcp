@@ -61,7 +61,7 @@ def start_pcp(
     pmlogger_cmd = [
         "/usr/bin/pmlogger",
         "-c",
-        "pmlogger.conf",
+        "fixtures/pmlogger.conf",
         "-t",
         "1",
         "pmlogger-out",
@@ -72,13 +72,17 @@ def start_pcp(
         result = subprocess.run(
             pmlogger_cmd,
             text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             timeout=params.run_duration,
         )
+
         # It should not end itself, so getting here means there was an
         # error.
         return "error", Error(
-            result.returncode,
-            result.stdout.decode("utf-8") + result.stderr.decode("utf-8"),
+            "{} ended unexpectedly with return code {}:\n{}".format(
+                result.args[0], result.returncode, result.stdout
+            )
         )
     except subprocess.CalledProcessError as error:
         return "error", Error(
@@ -99,7 +103,7 @@ def start_pcp(
             "-t",
             "1s",
             "-c",
-            "pcp2json.conf",
+            "fixtures/pcp2json.conf",
             ":sar",
             ":sar-b",
             ":sar-r",

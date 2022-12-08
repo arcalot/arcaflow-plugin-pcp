@@ -8,14 +8,16 @@ class InputParams:
     run_duration: typing.Annotated[
         int,
         schema.name("run duration"),
-        schema.description("Time in seconds that the PCP plugin runs before being forceably stopped"),
+        schema.description(
+            "Time in seconds that the PCP plugin runs before being forceably stopped"
+        ),
     ]
     pmlogger_interval: typing.Annotated[
         typing.Optional[int],
         schema.name("pmlogger logging interval"),
         schema.description(
-                "The logging interval in seconds used by "
-                "pmlogger for data collection"
+            "The logging interval in seconds used by "
+            "pmlogger for data collection"
         ),
     ] = None
 
@@ -26,7 +28,7 @@ class PerfOutput:
         typing.Dict[str, typing.Any],
         schema.name("PCP output dictionary"),
         schema.description(
-                "Performance data from PCP provided in a " "JSON dictionary format"
+            "Performance data from PCP provided in a " "JSON dictionary format"
         ),
     ]
 
