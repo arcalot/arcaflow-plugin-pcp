@@ -1,7 +1,21 @@
+# get collectl
+FROM quay.io/centos/centos:stream8 as collectl
+
+RUN dnf -y install git
+
+RUN git clone https://github.com/sharkcz/collectl.git --branch 4.3.5 --single-branch
+
+WORKDIR collectl
+ENV DESTDIR /collectl-install
+RUN ./INSTALL
+
+
 # build poetry
 FROM quay.io/centos/centos:stream8 as poetry
 
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat
+RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
+
+COPY --from=collectl /collectl-install/ /
 
 WORKDIR /app
 
@@ -17,27 +31,26 @@ ENV package arcaflow_plugin_pcp
 
 # run tests
 COPY ${package}/ /app/${package}
-COPY tests/* /app/
+COPY tests /app/${package}/tests
 
 ENV PYTHONPATH /app/${package}
 
+WORKDIR /app/${package}
+
 RUN mkdir /htmlcov
 RUN python3.9 -m pip install coverage
-# RUN python3.9 -m coverage run test_pcp_plugin.py
-# RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
+RUN python3.9 -m coverage run tests/test_pcp_plugin.py
+RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
+
 
 # final image
 FROM quay.io/centos/centos:stream8
 
 ENV package arcaflow_plugin_pcp
 
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat
+RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
 
-RUN dnf -y install git
-RUN git clone https://github.com/sharkcz/collectl.git --branch 4.3.5 --single-branch
-
-WORKDIR collectl
-RUN ./INSTALL
+COPY --from=collectl /collectl-install/ /
 
 WORKDIR /app
 
