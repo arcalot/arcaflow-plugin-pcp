@@ -1,7 +1,7 @@
 # build poetry
 FROM quay.io/centos/centos:stream8 as poetry
 
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat #collectl
+RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat
 
 WORKDIR /app
 
@@ -31,7 +31,13 @@ FROM quay.io/centos/centos:stream8
 
 ENV package arcaflow_plugin_pcp
 
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat #collectl
+RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat
+
+RUN dnf -y install git
+RUN git clone https://github.com/sharkcz/collectl.git --branch 4.3.5 --single-branch
+
+WORKDIR collectl
+RUN ./INSTALL
 
 WORKDIR /app
 

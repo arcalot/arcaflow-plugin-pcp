@@ -31,6 +31,26 @@ def start_pcp(
     try:
         subprocess.check_output(
             pcmd_cmd,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        return "error", Error(
+            "{} failed with return code {}:\n{}".format(
+                error.cmd[0], error.returncode, error.output
+            )
+        )
+
+    # Start the collectl daemon
+    collectl_cmd = [
+        "/usr/bin/collectl",
+        "-D",
+    ]
+
+    try:
+        subprocess.check_output(
+            collectl_cmd,
+            stderr=subprocess.STDOUT,
             text=True,
         )
     except subprocess.CalledProcessError as error:
@@ -111,11 +131,11 @@ def start_pcp(
     except subprocess.TimeoutExpired:
         # Worked as intended. It doesn't end itself, so it finished when it
         # timed out.
-        
+
         # Reference command:
         # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
         # :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
-        
+
         # Convert output to json
         pcp2json_cmd = [
             "/usr/bin/pcp2json",
@@ -128,6 +148,7 @@ def start_pcp(
             ":sar",
             ":sar-b",
             ":sar-r",
+            ":collectl-sn",
             "-E",
         ]
 
