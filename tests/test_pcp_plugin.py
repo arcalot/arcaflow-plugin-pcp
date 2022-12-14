@@ -3,6 +3,9 @@
 import unittest
 import pcp_plugin
 from arcaflow_plugin_sdk import plugin
+from pcp_schema import (
+    interval_output_schema,
+)
 
 
 class PCPTest(unittest.TestCase):
@@ -17,9 +20,18 @@ class PCPTest(unittest.TestCase):
 
         plugin.test_object_serialization(
             pcp_plugin.PerfOutput(
-                {
-                    "foo": "bar",
-                }
+                [
+                    {
+                        "@interval": "0",
+                        "@timestamp": "2022-12-14T13:12:11.894567Z",
+                        "commit": {
+                            "value": 171.008
+                        },
+                    },{
+                        "@interval": "1",
+                        "@timestamp": "2022-12-14T13:12:12.901382Z",
+                    },
+                ]
             )
         )
 
@@ -39,7 +51,7 @@ class PCPTest(unittest.TestCase):
         print(f"==>> output_data is {output_data}")
 
         self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, dict)
+        self.assertIsInstance(output_data.pcp_output, list)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ from pcp_schema import (
     InputParams,
     PerfOutput,
     Error,
+    interval_output_schema,
 )
 
 
@@ -171,7 +172,8 @@ def start_pcp(
                     error.cmd[0], error.returncode, error.output
                 )
             )
-        return "success", PerfOutput(pcp_out_json)
+        return "success", PerfOutput(pcp_out_json["@pcp"]["@hosts"][0]["@metrics"])
+
 
 
 if __name__ == "__main__":

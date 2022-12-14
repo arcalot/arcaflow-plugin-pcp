@@ -1,6 +1,6 @@
 import typing
 from dataclasses import dataclass
-from arcaflow_plugin_sdk import schema
+from arcaflow_plugin_sdk import plugin, schema
 
 
 @dataclass
@@ -21,14 +21,33 @@ class InputParams:
         ),
     ] = None
 
+@dataclass
+class IntervalOutput:
+    interval_output: typing.Annotated[
+        typing.Dict[str,typing.Any],
+        schema.name("PCP interval output dictionary"),
+        schema.description("Interval performance data from PCP provided in a JSON dictionary format"),
+    ]
+
+interval_output_schema = schema.ListType(
+    plugin.build_object_schema(IntervalOutput),
+)
 
 @dataclass
 class PerfOutput:
+    # pcp_output: typing.Annotated[
+    #     typing.Dict[str, typing.Any],
+    #     schema.name("PCP output dictionary"),
+    #     schema.description(
+    #         "Performance data from PCP provided in a " "JSON dictionary format"
+    #     ),
+    # ]
     pcp_output: typing.Annotated[
-        typing.Dict[str, typing.Any],
-        schema.name("PCP output dictionary"),
+        # typing.List[IntervalOutput],
+        typing.List[typing.Any],
+        schema.name("PCP output list"),
         schema.description(
-            "Performance data from PCP provided in a " "JSON dictionary format"
+            "Performance data from PCP provided in a " "list format"
         ),
     ]
 
