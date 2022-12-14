@@ -172,8 +172,10 @@ def start_pcp(
                     error.cmd[0], error.returncode, error.output
                 )
             )
-        return "success", PerfOutput(pcp_out_json["@pcp"]["@hosts"][0]["@metrics"])
-
+        pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+        return "success", PerfOutput(
+            interval_output_schema.unserialize(pcp_metrics_list)
+        )
 
 
 if __name__ == "__main__":

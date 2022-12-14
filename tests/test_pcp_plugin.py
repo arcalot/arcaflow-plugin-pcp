@@ -20,18 +20,19 @@ class PCPTest(unittest.TestCase):
 
         plugin.test_object_serialization(
             pcp_plugin.PerfOutput(
-                [
-                    {
-                        "@interval": "0",
-                        "@timestamp": "2022-12-14T13:12:11.894567Z",
-                        "commit": {
-                            "value": 171.008
+                interval_output_schema.unserialize(
+                    [
+                        {
+                            "@interval": "0",
+                            "@timestamp": "2022-12-14T13:12:11.894567Z",
+                            "commit": {"value": 171.008},
                         },
-                    },{
-                        "@interval": "1",
-                        "@timestamp": "2022-12-14T13:12:12.901382Z",
-                    },
-                ]
+                        {
+                            "@interval": "1",
+                            "@timestamp": "2022-12-14T13:12:12.901382Z",
+                        },
+                    ]
+                )
             )
         )
 
