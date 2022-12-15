@@ -34,7 +34,7 @@ class IntervalOutput:
         str,
         schema.id("@timestamp"),
         schema.name("Interval timestamp"),
-        schema.description("The timestamp of the reported inverval"),
+        schema.description("The timestamp of the reported interval"),
     ]
     commit: typing.Annotated[
         typing.Optional[typing.Dict[str, typing.Any]],
@@ -94,7 +94,7 @@ class PerfOutput:
         typing.List[IntervalOutput],
         schema.name("PCP output list"),
         schema.description(
-            "Performance data from PCP provided in a " "list format"
+            "Performance data from PCP provided in a list format"
         ),
     ]
 
