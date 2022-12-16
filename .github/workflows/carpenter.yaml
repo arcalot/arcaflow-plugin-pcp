@@ -18,7 +18,7 @@ env:
   QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
 jobs:
   carpenter-build:
-  name: Carpenter build job
+  name: carpenter_build_job
   runs-on: ubuntu-latest
   steps:
     - name: Set image tag for releases
