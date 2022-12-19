@@ -16,10 +16,10 @@ env:
   QUAY_NAMESPACE: ${{ secrets.QUAY_NAMESPACE }}
   QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
   QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+run-name: Build image for ${{ github.event_name }} from ${{ github.ref }}
 jobs:
   carpenter-build:
     name: carpenter_build
-    run-name: Build image for ${{ github.event_name }} from ${{ github.ref }}
     runs-on: ubuntu-latest
     steps:
       - name: Set image tag for release
