@@ -7,7 +7,7 @@ on:
     types:
       - published
 env:
-  IMAGE_NAME: arcaflow-plugin-pcp
+  IMAGE_NAME: ${{ github.event.repository.name }}
   IMAGE_TAG: 'latest'
   QUAY_IMG_EXP: 'never'
   GITHUB_USERNAME: ${{ github.actor }}
@@ -16,7 +16,6 @@ env:
   QUAY_NAMESPACE: ${{ secrets.QUAY_NAMESPACE }}
   QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
   QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-# run-name: Build image for ${{ github.event_name }} from ${{ github.ref }}
 jobs:
   carpenter-build:
     name: Carpenter build ${{ github.ref_name }} from ${{ github.event_name }}
@@ -33,7 +32,7 @@ jobs:
           echo "QUAY_IMG_EXP=90d" >> $GITHUB_ENV
       - name: Checkout this project
         uses: actions/checkout@v3
-      - name: carpenter build
+      - name: Carpenter build
         uses: arcalot/arcaflow-plugin-image-builder@main
         with:
           args: build --build --push
