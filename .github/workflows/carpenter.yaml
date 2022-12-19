@@ -19,7 +19,7 @@ env:
 # run-name: Build image for ${{ github.event_name }} from ${{ github.ref }}
 jobs:
   carpenter-build:
-    name: Carpenter build ${{ github.ref#refs/*/ }} from ${{ github.event_name }}
+    name: Carpenter build ${{ github.ref_name }} from ${{ github.event_name }}
     runs-on: ubuntu-latest
     steps:
       - name: Set image tag for release
