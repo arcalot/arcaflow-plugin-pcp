@@ -1,70 +1,70 @@
-# get collectl
-FROM quay.io/centos/centos:stream8 as collectl
+# Package path for this plugin module relative to the repo root
+ARG package=arcaflow_plugin_pcp
+
+# PRE-STAGE -- Get collectl
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:0.2.0 as collectl
 
 RUN dnf -y install git
-
 RUN git clone https://github.com/sharkcz/collectl.git --branch 4.3.5 --single-branch
 
-WORKDIR collectl
-ENV DESTDIR /collectl-install
-RUN ./INSTALL
+# STAGE 1 -- Build module dependencies and run tests
+# The 'poetry' and 'coverage' modules are installed and verson-controlled in the
+# quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase image to limit drift
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:0.2.0 as build
+ARG package
+RUN dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
 
-
-# build poetry
-FROM quay.io/centos/centos:stream8 as poetry
-
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
-
-COPY --from=collectl /collectl-install/ /
-
-WORKDIR /app
+# An RPM dependency breaks this link from the arcaflow-plugin-baseimage-python-osbase image, so re-applying here
+RUN ln -s /usr/bin/python3.9 /usr/bin/python
 
 COPY poetry.lock /app/
 COPY pyproject.toml /app/
 
-RUN python3.9 -m pip install poetry \
- && python3.9 -m poetry config virtualenvs.create false \
- && python3.9 -m poetry install --without dev --no-root \
- && python3.9 -m poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Convert the dependencies from poetry to a static requirements.txt file
+RUN python -m poetry install --without dev --no-root \
+ && python -m poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-ENV package arcaflow_plugin_pcp
-
-# run tests
 COPY ${package}/ /app/${package}
 COPY tests /app/${package}/tests
 
 ENV PYTHONPATH /app/${package}
 
+# Intall collectl
+COPY --from=collectl /app/collectl/ /app/collectl/
+WORKDIR /app/collectl
+RUN ./INSTALL
+
 WORKDIR /app/${package}
 
-RUN mkdir /htmlcov
-RUN python3.9 -m pip install coverage
-RUN python3.9 -m coverage run tests/test_pcp_plugin.py
-RUN python3.9 -m coverage html -d /htmlcov --omit=/usr/local/*
+# Run tests and return coverage analysis
+RUN python -m coverage run tests/test_${package}.py \
+ && python -m coverage html -d /htmlcov --omit=/usr/local/*
 
 
-# final image
-FROM quay.io/centos/centos:stream8
+# STAGE 2 -- Build final plugin image
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:0.2.0
+ARG package
+RUN dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
 
-ENV package arcaflow_plugin_pcp
+# An RPM dependency breaks this link from the arcaflow-plugin-baseimage-python-osbase image, so re-applying here
+RUN ln -s /usr/bin/python3.9 /usr/bin/python
 
-RUN dnf -y module install python39 && dnf -y install python39 python39-pip && dnf -y install procps-ng pcp pcp-export-pcp2json sysstat perl
-
-COPY --from=collectl /collectl-install/ /
-
-WORKDIR /app
-
-COPY --from=poetry /app/requirements.txt /app/
-COPY --from=poetry /htmlcov /htmlcov/
+COPY --from=build /app/requirements.txt /app/
+COPY --from=build /htmlcov /htmlcov/
 COPY LICENSE /app/
 COPY README.md /app/
 COPY ${package}/ /app/${package}
 
-RUN python3.9 -m pip install -r requirements.txt
+RUN python -m pip install -r requirements.txt
+
+# Intall collectl
+COPY --from=collectl /app/collectl/ /app/collectl/
+WORKDIR /app/collectl
+RUN ./INSTALL
 
 WORKDIR /app/${package}
 
-ENTRYPOINT ["python3.9", "pcp_plugin.py"]
+ENTRYPOINT ["python", "pcp_plugin.py"]
 CMD []
 
 LABEL org.opencontainers.image.source="https://github.com/arcalot/arcaflow-plugin-pcp"

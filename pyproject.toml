@@ -5,7 +5,10 @@ description = "arcaflow plugin for performance copilot"
 authors = ["Arcalot"]
 license = "Apache-2.0"
 readme = "README.md"
-packages = [{include = "pcp_plugin.py", from="."}]
+
+packages = [
+   { include="pcp_plugin.py", from="./arcaflow_plugin_pcp"  },
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
