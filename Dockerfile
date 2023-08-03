@@ -30,7 +30,7 @@ RUN python -m poetry install --without dev --no-root \
 
 COPY ${package}/ /app/${package}
 COPY tests /app/${package}/tests
-COPY --from=collectl /collectl-install/ /
+COPY --from=collectl /collectl-install/ //
 
 ENV PYTHONPATH /app/${package}
 
@@ -51,7 +51,7 @@ RUN ln -s /usr/bin/python3.9 /usr/bin/python
 
 COPY --from=build /app/requirements.txt /app/
 COPY --from=build /htmlcov /htmlcov/
-COPY --from=collectl /collectl-install/ /
+COPY --from=collectl /collectl-install/ //
 COPY LICENSE /app/
 COPY README.md /app/
 COPY ${package}/ /app/${package}
