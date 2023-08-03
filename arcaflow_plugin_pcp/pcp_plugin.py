@@ -146,11 +146,11 @@ def start_pcp(
             "1s",
             "-c",
             "fixtures/pcp2json.conf",
+            "-E",
             ":sar",
             ":sar-b",
             ":sar-r",
             ":collectl-sn",
-            "-E",
         ]
 
         try:
