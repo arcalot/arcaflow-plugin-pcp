@@ -4,14 +4,7 @@ from arcaflow_plugin_sdk import plugin, schema
 
 
 @dataclass
-class InputParams:
-    run_duration: typing.Annotated[
-        int,
-        schema.name("run duration"),
-        schema.description(
-            "Time in seconds that the PCP plugin runs before being forceably stopped"
-        ),
-    ]
+class PcpInputParams:
     pmlogger_interval: typing.Annotated[
         typing.Optional[int],
         schema.name("pmlogger logging interval"),

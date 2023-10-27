@@ -12,9 +12,8 @@ class PCPTest(unittest.TestCase):
     @staticmethod
     def test_serialization():
         plugin.test_object_serialization(
-            pcp_plugin.InputParams(
+            pcp_plugin.PcpInputParams(
                 pmlogger_interval=1,
-                run_duration=10,
             )
         )
 
@@ -41,12 +40,11 @@ class PCPTest(unittest.TestCase):
         )
 
     def test_functional(self):
-        input = pcp_plugin.InputParams(
+        input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1,
-            run_duration=2,
         )
 
-        output_id, output_data = pcp_plugin.start_pcp(input)
+        output_id, output_data = pcp_plugin.start_pcp(params=input, run_id="ci_pcp")
 
         print(f"==>> output_id is {output_id}")
         print(f"==>> output_data is {output_data}")
