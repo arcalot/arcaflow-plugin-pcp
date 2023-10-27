@@ -22,20 +22,14 @@ Start the PCP data logging tools
 ### Input
 
 <table><tbody>
-<tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>InputParams</td></tr>
+<tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>PcpInputParams</td></tr>
 <tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>int</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>int</code></td>
 </tbody></table>
-            </details><details><summary>run_duration (<code>int</code>)</summary>
-                <table><tbody><tr><th>Name:</th><td>run duration</td></tr><tr><th>Description:</th><td>Time in seconds that the PCP plugin runs before being forceably stopped</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>int</code></td>
-</tbody></table>
             </details></td></tr>
-<tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>InputParams (<code>object</code>)</summary>
+<tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>PcpInputParams (<code>object</code>)</summary>
             <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>int</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>int</code></td>
-</tbody></table>
-        </details><details><summary>run_duration (<code>int</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>run duration</td></tr><tr><th>Description:</th><td>Time in seconds that the PCP plugin runs before being forceably stopped</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>int</code></td>
 </tbody></table>
         </details></td></tr>
 </tbody></table>
