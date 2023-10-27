@@ -9,8 +9,7 @@ class PcpInputParams:
         typing.Optional[int],
         schema.name("pmlogger logging interval"),
         schema.description(
-            "The logging interval in seconds used by "
-            "pmlogger for data collection"
+            "The logging interval in seconds used by " "pmlogger for data collection"
         ),
     ] = None
 
@@ -76,9 +75,7 @@ class IntervalOutput:
     ] = None
 
 
-interval_output_schema = schema.ListType(
-    plugin.build_object_schema(IntervalOutput)
-)
+interval_output_schema = schema.ListType(plugin.build_object_schema(IntervalOutput))
 
 
 @dataclass
@@ -86,9 +83,7 @@ class PerfOutput:
     pcp_output: typing.Annotated[
         typing.List[IntervalOutput],
         schema.name("PCP output list"),
-        schema.description(
-            "Performance data from PCP provided in a list format"
-        ),
+        schema.description("Performance data from PCP provided in a list format"),
     ]
 
 

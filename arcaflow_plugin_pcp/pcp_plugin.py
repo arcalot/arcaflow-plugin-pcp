@@ -5,6 +5,7 @@ import subprocess
 import sys
 import typing
 from threading import Event
+import signal
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
     PcpInputParams,
@@ -18,11 +19,14 @@ class StartPcpStep:
     exit = Event()
     finished_early = False
 
+    def handler(self, signum, frame):
+        self.finished_early = True
+        self.exit.set()
+
     @plugin.signal_handler(
         id=predefined_schemas.cancel_signal_schema.id,
         name=predefined_schemas.cancel_signal_schema.display.name,
-        description=predefined_schemas.cancel_signal_schema.display.
-        description,
+        description=predefined_schemas.cancel_signal_schema.display.description,
         icon=predefined_schemas.cancel_signal_schema.display.icon,
     )
     def cancel_step(self, _input: predefined_schemas.cancelInput):
@@ -44,7 +48,10 @@ class StartPcpStep:
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
-        
+        # Capture interruption and re-route to Event() for a clean exit
+        # This is important for the plugin to run stand-alone
+        signal.signal(signal.SIGINT, self.handler)
+
         # Start the PCMD daemon
         pcmd_cmd = [
             "/usr/libexec/pcp/lib/pmcd",
@@ -130,73 +137,70 @@ class StartPcpStep:
         ]
 
         try:
-            result = subprocess.run(
+            print("Gathering data... Use Ctrl-C to stop.")
+            pmlogger_result = subprocess.Popen(
                 pmlogger_cmd,
                 text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
+                # stdout=subprocess.PIPE,
+                # stderr=subprocess.STDOUT,
             )
 
-            # It should not end itself, so getting here means there was an
-            # error.
-            return "error", Error(
-                "{} ended unexpectedly with return code {}:\n{}".format(
-                    result.args[0], result.returncode, result.stdout
-                )
-            )
         except subprocess.CalledProcessError as error:
             return "error", Error(
                 "{} failed with return code {}:\n{}".format(
                     error.cmd[0], error.returncode, error.output
                 )
             )
-        except subprocess.TimeoutExpired:
-            # Worked as intended. It doesn't end itself, so it finished when it
-            # timed out.
 
-            # Reference command:
-            # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
-            # :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
+        # Block waiting on the cancel signal
+        self.exit.wait()
 
-            # Convert output to json
-            pcp2json_cmd = [
-                "/usr/bin/pcp2json",
-                "-a",
-                "pmlogger-out",
-                "-t",
-                "1s",
-                "-c",
-                "fixtures/pcp2json.conf",
-                "-E",
-                ":sar",
-                ":sar-b",
-                ":sar-r",
-                ":collectl-sn",
-            ]
+        # When the cancel signal is received, terminate pmlogger and continue
+        pmlogger_result.terminate
 
-            try:
-                pcp_out = (
-                    (
-                        subprocess.check_output(
-                            pcp2json_cmd,
-                            text=True,
-                            stderr=subprocess.STDOUT,
-                        )
-                    )
-                    .strip()
-                    .split("\n", 2)[2]
-                )
-                pcp_out_json = json.loads(pcp_out)
-            except subprocess.CalledProcessError as error:
-                return "error", Error(
-                    "{} failed with return code {}:\n{}".format(
-                        error.cmd[0], error.returncode, error.output
+        # Reference command:
+        # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
+        # :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
+
+        # Convert output to json
+        pcp2json_cmd = [
+            "/usr/bin/pcp2json",
+            "-a",
+            "pmlogger-out",
+            "-t",
+            "1s",
+            "-c",
+            "fixtures/pcp2json.conf",
+            "-E",
+            ":sar",
+            ":sar-b",
+            ":sar-r",
+            ":collectl-sn",
+        ]
+
+        try:
+            pcp_out = (
+                (
+                    subprocess.check_output(
+                        pcp2json_cmd,
+                        text=True,
+                        stderr=subprocess.STDOUT,
                     )
                 )
-            pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
-            return "success", PerfOutput(
-                interval_output_schema.unserialize(pcp_metrics_list)
+                .strip()
+                .split("\n", 2)[2]
             )
+            pcp_out_json = json.loads(pcp_out)
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
+            )
+        pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+        return "success", PerfOutput(
+            interval_output_schema.unserialize(pcp_metrics_list)
+        )
 
 
 if __name__ == "__main__":

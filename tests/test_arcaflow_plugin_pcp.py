@@ -35,9 +35,7 @@ class PCPTest(unittest.TestCase):
             )
         )
 
-        plugin.test_object_serialization(
-            pcp_plugin.Error(error="This is an error")
-        )
+        plugin.test_object_serialization(pcp_plugin.Error(error="This is an error"))
 
     def test_functional(self):
         input = pcp_plugin.PcpInputParams(
