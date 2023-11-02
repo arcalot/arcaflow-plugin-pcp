@@ -2,12 +2,13 @@
 
 import unittest
 import pcp_plugin
+# from threading import Thread
 from arcaflow_plugin_sdk import plugin
 from pcp_schema import (
     interval_output_schema,
 )
 
-
+    
 class PCPTest(unittest.TestCase):
     @staticmethod
     def test_serialization():
@@ -42,7 +43,7 @@ class PCPTest(unittest.TestCase):
             pmlogger_interval=1,
         )
 
-        output_id, output_data = pcp_plugin.start_pcp(params=input, run_id="ci_pcp")
+        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(params=input, run_id="ci_pcp")
 
         print(f"==>> output_id is {output_id}")
         print(f"==>> output_data is {output_data}")

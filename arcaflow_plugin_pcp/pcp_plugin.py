@@ -4,8 +4,7 @@ import json
 import subprocess
 import sys
 import typing
-from threading import Event, Thread
-import signal
+from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
     PcpInputParams,
@@ -44,7 +43,6 @@ class StartPcpStep:
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
-        
         # Start the PCMD daemon
         pcmd_cmd = [
             "/usr/libexec/pcp/lib/pmcd",
@@ -148,9 +146,9 @@ class StartPcpStep:
                     error.cmd[0], error.returncode, error.output
                 )
             )
-        
+
         except (KeyboardInterrupt, SystemExit):
-            print('\nReceived keyboard interrupt; Stopping data collection.\n')
+            print("\nReceived keyboard interrupt; Stopping data collection.\n")
             self.exit.set()
 
         # Reference command:
