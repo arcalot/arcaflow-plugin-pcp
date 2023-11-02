@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 import typing
-from threading import Event
+from threading import Event, Thread
 import signal
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
@@ -18,10 +18,6 @@ from pcp_schema import (
 class StartPcpStep:
     exit = Event()
     finished_early = False
-
-    def handler(self, signum, frame):
-        self.finished_early = True
-        self.exit.set()
 
     @plugin.signal_handler(
         id=predefined_schemas.cancel_signal_schema.id,
@@ -48,10 +44,7 @@ class StartPcpStep:
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
-        # Capture interruption and re-route to Event() for a clean exit
-        # This is important for the plugin to run stand-alone
-        signal.signal(signal.SIGINT, self.handler)
-
+        
         # Start the PCMD daemon
         pcmd_cmd = [
             "/usr/libexec/pcp/lib/pmcd",
@@ -141,9 +134,13 @@ class StartPcpStep:
             pmlogger_result = subprocess.Popen(
                 pmlogger_cmd,
                 text=True,
-                # stdout=subprocess.PIPE,
-                # stderr=subprocess.STDOUT,
             )
+
+            # Block waiting on the cancel signal
+            self.exit.wait()
+
+            # When the cancel signal is received, terminate pmlogger and continue
+            pmlogger_result.terminate()
 
         except subprocess.CalledProcessError as error:
             return "error", Error(
@@ -151,12 +148,10 @@ class StartPcpStep:
                     error.cmd[0], error.returncode, error.output
                 )
             )
-
-        # Block waiting on the cancel signal
-        self.exit.wait()
-
-        # When the cancel signal is received, terminate pmlogger and continue
-        pmlogger_result.terminate
+        
+        except (KeyboardInterrupt, SystemExit):
+            print('\nReceived keyboard interrupt; Stopping data collection.\n')
+            self.exit.set()
 
         # Reference command:
         # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
