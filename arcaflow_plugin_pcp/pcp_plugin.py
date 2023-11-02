@@ -135,7 +135,7 @@ class StartPcpStep:
             )
 
             # Block waiting on the cancel signal
-            self.exit.wait()
+            self.exit.wait(params.timeout)
 
             # When the cancel signal is received, terminate pmlogger and continue
             pmlogger_result.terminate()

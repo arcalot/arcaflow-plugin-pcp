@@ -13,8 +13,8 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Build image
         run: docker-compose build
-      # - name: Run plugin
-      #   run: docker-compose up
+      - name: Run plugin
+        run: docker-compose up
       - name: Extract coverage data
         run: |
           docker create --name test ghcr.io/arcalot/arcaflow-plugin-pcp:latest

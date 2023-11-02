@@ -9,7 +9,14 @@ class PcpInputParams:
         typing.Optional[int],
         schema.name("pmlogger logging interval"),
         schema.description(
-            "The logging interval in seconds used by " "pmlogger for data collection"
+            "The logging interval in seconds used by pmlogger for data collection"
+        ),
+    ] = None
+    timeout: typing.Annotated[
+        typing.Optional[int],
+        schema.name("pmlogger timeout seconds"),
+        schema.description(
+            "Timeout in seconds after which to cancel the pmlogger collection"
         ),
     ] = None
 

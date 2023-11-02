@@ -3,7 +3,6 @@
 import unittest
 import pcp_plugin
 
-# from threading import Thread
 from arcaflow_plugin_sdk import plugin
 from pcp_schema import (
     interval_output_schema,
@@ -42,6 +41,7 @@ class PCPTest(unittest.TestCase):
     def test_functional(self):
         input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1,
+            timeout=5,
         )
 
         output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
