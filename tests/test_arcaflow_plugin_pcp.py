@@ -2,6 +2,7 @@
 
 import unittest
 import pcp_plugin
+
 from arcaflow_plugin_sdk import plugin
 from pcp_schema import (
     interval_output_schema,
@@ -12,9 +13,8 @@ class PCPTest(unittest.TestCase):
     @staticmethod
     def test_serialization():
         plugin.test_object_serialization(
-            pcp_plugin.InputParams(
+            pcp_plugin.PcpInputParams(
                 pmlogger_interval=1,
-                run_duration=10,
             )
         )
 
@@ -36,17 +36,17 @@ class PCPTest(unittest.TestCase):
             )
         )
 
-        plugin.test_object_serialization(
-            pcp_plugin.Error(error="This is an error")
-        )
+        plugin.test_object_serialization(pcp_plugin.Error(error="This is an error"))
 
     def test_functional(self):
-        input = pcp_plugin.InputParams(
+        input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1,
-            run_duration=2,
+            timeout=5,
         )
 
-        output_id, output_data = pcp_plugin.start_pcp(input)
+        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+            params=input, run_id="ci_pcp"
+        )
 
         print(f"==>> output_id is {output_id}")
         print(f"==>> output_data is {output_data}")

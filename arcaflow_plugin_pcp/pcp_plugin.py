@@ -4,134 +4,152 @@ import json
 import subprocess
 import sys
 import typing
-from arcaflow_plugin_sdk import plugin
+from threading import Event
+from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
-    InputParams,
+    PcpInputParams,
     PerfOutput,
     Error,
     interval_output_schema,
 )
 
 
-@plugin.step(
-    id="start-pcp",
-    name="Start PCP",
-    description="Start the PCP data logging tools",
-    outputs={"success": PerfOutput, "error": Error},
-)
-def start_pcp(
-    params: InputParams,
-) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+class StartPcpStep:
+    exit = Event()
+    finished_early = False
 
-    # Start the PCMD daemon
-    pcmd_cmd = [
-        "/usr/libexec/pcp/lib/pmcd",
-        "start",
-    ]
+    @plugin.signal_handler(
+        id=predefined_schemas.cancel_signal_schema.id,
+        name=predefined_schemas.cancel_signal_schema.display.name,
+        description=predefined_schemas.cancel_signal_schema.display.description,
+        icon=predefined_schemas.cancel_signal_schema.display.icon,
+    )
+    def cancel_step(self, _input: predefined_schemas.cancelInput):
+        # First, let it know that this is the reason it's exiting.
+        self.finished_early = True
+        # Now signal to exit.
+        self.exit.set()
 
-    try:
-        subprocess.check_output(
-            pcmd_cmd,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-    except subprocess.CalledProcessError as error:
-        return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
+    @plugin.step_with_signals(
+        id="start-pcp",
+        name="Start PCP",
+        description="Start the PCP data logging tools",
+        outputs={"success": PerfOutput, "error": Error},
+        signal_handler_method_names=["cancel_step"],
+        signal_emitters=[],
+        step_object_constructor=lambda: StartPcpStep(),
+    )
+    def start_pcp(
+        self,
+        params: PcpInputParams,
+    ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+        # Start the PCMD daemon
+        pcmd_cmd = [
+            "/usr/libexec/pcp/lib/pmcd",
+            "start",
+        ]
+
+        try:
+            subprocess.check_output(
+                pcmd_cmd,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
-        )
-
-    # Start the collectl daemon
-    collectl_cmd = [
-        "/usr/bin/collectl",
-        "-D",
-    ]
-
-    try:
-        subprocess.check_output(
-            collectl_cmd,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-    except subprocess.CalledProcessError as error:
-        return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
             )
-        )
 
-    # Start SAR collection in the background
-    sar_cmd = [
-        "/usr/lib64/sa/sa1",
-        "1",
-    ]
+        # Start the collectl daemon
+        collectl_cmd = [
+            "/usr/bin/collectl",
+            "-D",
+        ]
 
-    try:
-        subprocess.Popen(
-            sar_cmd,
-            text=True,
-        )
-    except subprocess.CalledProcessError as error:
-        return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
+        try:
+            subprocess.check_output(
+                collectl_cmd,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
-        )
-
-    # Create the pmlogger.conf file
-    pmlogconf_cmd = [
-        "/usr/bin/pmlogconf",
-        "pmlogger.conf",
-    ]
-
-    try:
-        subprocess.check_output(
-            pmlogconf_cmd,
-            text=True,
-        )
-    except subprocess.CalledProcessError as error:
-        return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
             )
-        )
 
-    # Start pmlogger
-    pmlogger_cmd = [
-        "/usr/bin/pmlogger",
-        "-c",
-        "pmlogger.conf",
-        "-t",
-        "1",
-        "pmlogger-out",
-    ]
+        # Start SAR collection in the background
+        sar_cmd = [
+            "/usr/lib64/sa/sa1",
+            "1",
+        ]
 
-    try:
-        result = subprocess.run(
-            pmlogger_cmd,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=params.run_duration,
-        )
-
-        # It should not end itself, so getting here means there was an
-        # error.
-        return "error", Error(
-            "{} ended unexpectedly with return code {}:\n{}".format(
-                result.args[0], result.returncode, result.stdout
+        try:
+            subprocess.Popen(
+                sar_cmd,
+                text=True,
             )
-        )
-    except subprocess.CalledProcessError as error:
-        return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
             )
-        )
-    except subprocess.TimeoutExpired:
-        # Worked as intended. It doesn't end itself, so it finished when it
-        # timed out.
+
+        # Create the pmlogger.conf file
+        pmlogconf_cmd = [
+            "/usr/bin/pmlogconf",
+            "pmlogger.conf",
+        ]
+
+        try:
+            subprocess.check_output(
+                pmlogconf_cmd,
+                text=True,
+            )
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
+            )
+
+        # Start pmlogger
+        pmlogger_cmd = [
+            "/usr/bin/pmlogger",
+            "-c",
+            "pmlogger.conf",
+            "-t",
+            str(params.pmlogger_interval),
+            "pmlogger-out",
+        ]
+
+        try:
+            print("Gathering data... Use Ctrl-C to stop.")
+            pmlogger_result = subprocess.Popen(
+                pmlogger_cmd,
+                text=True,
+            )
+
+            # Block waiting on the cancel signal
+            self.exit.wait(params.timeout)
+
+            # When the cancel signal is received, terminate pmlogger and continue
+            pmlogger_result.terminate()
+
+        except subprocess.CalledProcessError as error:
+            return "error", Error(
+                "{} failed with return code {}:\n{}".format(
+                    error.cmd[0], error.returncode, error.output
+                )
+            )
+
+        except (KeyboardInterrupt, SystemExit):
+            print("\nReceived keyboard interrupt; Stopping data collection.\n")
+            self.exit.set()
 
         # Reference command:
         # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
@@ -182,7 +200,7 @@ if __name__ == "__main__":
     sys.exit(
         plugin.run(
             plugin.build_schema(
-                start_pcp,
+                StartPcpStep.start_pcp,
             )
         )
     )

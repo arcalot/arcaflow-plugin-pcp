@@ -1,2 +1,2 @@
 pmlogger_interval: 1
-run_duration: 10
+timeout: 5
