@@ -10,7 +10,8 @@ class PcpInputParams:
         schema.units(schema.UNIT_TIME),
         schema.name("pmlogger logging interval"),
         schema.description(
-            "The logging interval in seconds (float) used by pmlogger for data collection"
+            "The logging interval in seconds (float) used by pmlogger"
+            " for data collection"
         ),
     ] = None
     timeout: typing.Annotated[
