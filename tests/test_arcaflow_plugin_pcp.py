@@ -14,7 +14,7 @@ class PCPTest(unittest.TestCase):
     def test_serialization():
         plugin.test_object_serialization(
             pcp_plugin.PcpInputParams(
-                pmlogger_interval=1,
+                pmlogger_interval=1.0,
             )
         )
 
@@ -40,7 +40,7 @@ class PCPTest(unittest.TestCase):
 
     def test_functional(self):
         input = pcp_plugin.PcpInputParams(
-            pmlogger_interval=1,
+            pmlogger_interval=1.0,
             timeout=5,
         )
 

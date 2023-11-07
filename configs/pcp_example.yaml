@@ -1,2 +1,2 @@
-pmlogger_interval: 1
+pmlogger_interval: 0.5
 timeout: 5
