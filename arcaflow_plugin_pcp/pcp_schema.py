@@ -21,6 +21,14 @@ class PcpInputParams:
             "Timeout in seconds after which to cancel the pmlogger collection"
         ),
     ] = None
+    pmlogger_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmlogger configuration file"),
+        schema.description(
+            "Complete configuration file content for pmlogger as a multi-line string."
+            " If no config file is provided, a default one will be generated."
+        ),
+    ] = None
 
 
 @dataclass

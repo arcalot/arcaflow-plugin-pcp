@@ -100,22 +100,29 @@ class StartPcpStep:
             )
 
         # Create the pmlogger.conf file
-        pmlogconf_cmd = [
-            "/usr/bin/pmlogconf",
-            "pmlogger.conf",
-        ]
+        if params.pmlogger_conf:
+            print("Using provided pmlogger configuraiton file")
+            f = open("pmlogger.conf", "w")
+            f.write(params.pmlogger_conf)
+            f.close
+        else:
+            print("Generating default pmlogger configuraiton file")
+            pmlogconf_cmd = [
+                "/usr/bin/pmlogconf",
+                "pmlogger.conf",
+            ]
 
-        try:
-            subprocess.check_output(
-                pmlogconf_cmd,
-                text=True,
-            )
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
+            try:
+                subprocess.check_output(
+                    pmlogconf_cmd,
+                    text=True,
                 )
-            )
+            except subprocess.CalledProcessError as error:
+                return "error", Error(
+                    "{} failed with return code {}:\n{}".format(
+                        error.cmd[0], error.returncode, error.output
+                    )
+                )
 
         # Start pmlogger
         pmlogger_cmd = [
