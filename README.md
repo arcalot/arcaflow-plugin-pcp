@@ -44,7 +44,9 @@ Start the PCP data logging tools
 
 <table><tbody>
 <tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>PcpInputParams</td></tr>
-<tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>float</code>)</summary>
+<tr><th>Properties</th><td><details><summary>pmlogger_conf (<code>string</code>)</summary>
+                <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
+            </details><details><summary>pmlogger_interval (<code>float</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds (float) used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>float</code></td><tr><th>Units:</th><td>nanoseconds</td></tr>
 </tbody></table>
             </details><details><summary>timeout (<code>int</code>)</summary>
@@ -52,7 +54,9 @@ Start the PCP data logging tools
 </tbody></table>
             </details></td></tr>
 <tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>PcpInputParams (<code>object</code>)</summary>
-            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>float</code>)</summary>
+            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pmlogger_conf (<code>string</code>)</summary>
+        <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
+        </details><details><summary>pmlogger_interval (<code>float</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds (float) used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>float</code></td><tr><th>Units:</th><td>nanoseconds</td></tr>
 </tbody></table>
         </details><details><summary>timeout (<code>int</code>)</summary>
