@@ -66,12 +66,12 @@ class StartPcpStep:
 
         # Create the pmlogger.conf file
         if params.pmlogger_conf:
-            print("Using provided pmlogger configuraiton file")
+            print("Using provided pmlogger configuration file")
             f = open("pmlogger.conf", "w")
             f.write(params.pmlogger_conf)
             f.close
         else:
-            print("Generating default pmlogger configuraiton file")
+            print("Generating default pmlogger configuration file")
             pmlogconf_cmd = [
                 "/usr/bin/pmlogconf",
                 "pmlogger.conf",
