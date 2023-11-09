@@ -10,7 +10,6 @@ from pcp_schema import (
     PcpInputParams,
     PerfOutput,
     Error,
-    interval_output_schema,
 )
 
 
@@ -43,6 +42,9 @@ class StartPcpStep:
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+        # Parse metrics from input
+        metrics = params.pmlogger_metrics.split()
+
         # Start the PCMD daemon
         pcmd_cmd = [
             "/usr/libexec/pcp/lib/pmcd",
@@ -53,43 +55,6 @@ class StartPcpStep:
             subprocess.check_output(
                 pcmd_cmd,
                 stderr=subprocess.STDOUT,
-                text=True,
-            )
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
-            )
-
-        # Start the collectl daemon
-        collectl_cmd = [
-            "/usr/bin/collectl",
-            "-D",
-        ]
-
-        try:
-            subprocess.check_output(
-                collectl_cmd,
-                stderr=subprocess.STDOUT,
-                text=True,
-            )
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
-            )
-
-        # Start SAR collection in the background
-        sar_cmd = [
-            "/usr/lib64/sa/sa1",
-            "1",
-        ]
-
-        try:
-            subprocess.Popen(
-                sar_cmd,
                 text=True,
             )
         except subprocess.CalledProcessError as error:
@@ -167,16 +132,13 @@ class StartPcpStep:
             "/usr/bin/pcp2json",
             "-a",
             "pmlogger-out",
-            "-t",
-            "1s",
             "-c",
-            "fixtures/pcp2json.conf",
+            "/etc/pcp/pmrep/",
             "-E",
-            ":sar",
-            ":sar-b",
-            ":sar-r",
-            ":collectl-sn",
         ]
+
+        pcp2json_cmd.extend(metrics)
+        print(f"Reporting metrics for: {params.pmlogger_metrics}")
 
         try:
             pcp_out = (
@@ -199,7 +161,8 @@ class StartPcpStep:
             )
         pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
         return "success", PerfOutput(
-            interval_output_schema.unserialize(pcp_metrics_list)
+            # interval_output_schema.unserialize(pcp_metrics_list)
+            pcp_metrics_list
         )
 
 
