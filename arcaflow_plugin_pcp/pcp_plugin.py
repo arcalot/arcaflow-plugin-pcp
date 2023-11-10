@@ -136,6 +136,8 @@ class StartPcpStep:
             "%Y-%m-%dT%H:%M:%S.%fZ",
             "-c",
             "/etc/pcp/pmrep/",
+            "-P",
+            "6",
             "-E",
         ]
 
