@@ -161,7 +161,6 @@ class StartPcpStep:
             )
         pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
         return "success", PerfOutput(
-            # interval_output_schema.unserialize(pcp_metrics_list)
             pcp_metrics_list
         )
 
