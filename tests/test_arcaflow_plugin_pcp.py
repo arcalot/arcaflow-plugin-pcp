@@ -22,7 +22,7 @@ class PCPTest(unittest.TestCase):
                 pcp_output=[
                     {
                         "@interval": "0",
-                        "@timestamp": "2023-11-09 14:39:05",
+                        "@timestamp": "2023-11-10T10:12:13.531775Z",
                         "kernel": {
                             "all": {
                                 "load": {
@@ -40,7 +40,7 @@ class PCPTest(unittest.TestCase):
                     },
                     {
                         "@interval": "1",
-                        "@timestamp": "2023-11-09 14:39:05",
+                        "@timestamp": "2023-11-10T10:12:14.027241Z",
                         "disk": {
                             "all": {
                                 "read": {"@unit": "count/s", "value": 14},
