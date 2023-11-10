@@ -132,6 +132,8 @@ class StartPcpStep:
             "/usr/bin/pcp2json",
             "-a",
             "pmlogger-out",
+            "-f",
+            "%Y-%m-%dT%H:%M:%S.%fZ",
             "-c",
             "/etc/pcp/pmrep/",
             "-E",
