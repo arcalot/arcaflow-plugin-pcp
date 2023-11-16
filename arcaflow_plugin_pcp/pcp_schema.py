@@ -16,6 +16,24 @@ class PcpInputParams:
             "kernel.all.cpu.user kernel.all.cpu.sys kernel.all.load"
             " mem.util.used disk.all.read disk.all.write"
         )
+    process_pmlogger_only: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("only process pmlogger output to json"),
+        schema.description(
+            "If set, the plugin performs no data collection and instead"
+            " only processes the user-provided pmlogger output into the"
+            " JSON format. Requires 'pmlogger_file_path'"
+        ),
+    ] = False
+    pmlogger_file_path: typing.Annotated[
+        typing.Optional[str],
+        schema.required_if(process_pmlogger_only),
+        schema.name("file path to pmlogger output"),
+        schema.description(
+            "The file path for the user-provided pmlogger output for"
+            " processing into JSON format. Requires 'process_pmlogger_only."
+        ),
+    ] = None
     pmlogger_interval: typing.Annotated[
         typing.Optional[float],
         schema.units(schema.UNIT_TIME),
