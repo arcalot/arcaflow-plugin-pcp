@@ -4,9 +4,6 @@ import unittest
 import pcp_plugin
 
 from arcaflow_plugin_sdk import plugin
-from pcp_schema import (
-    interval_output_schema,
-)
 
 
 class PCPTest(unittest.TestCase):
@@ -15,24 +12,61 @@ class PCPTest(unittest.TestCase):
         plugin.test_object_serialization(
             pcp_plugin.PcpInputParams(
                 pmlogger_interval=1.0,
+                timeout=5,
+                pmlogger_metrics="mem.util.used",
             )
         )
 
         plugin.test_object_serialization(
             pcp_plugin.PerfOutput(
-                interval_output_schema.unserialize(
-                    [
-                        {
-                            "@interval": "0",
-                            "@timestamp": "2022-12-14T13:12:11.894567Z",
-                            "commit": {"value": 171.008},
+                pcp_output=[
+                    {
+                        "@interval": "0",
+                        "@timestamp": "2023-11-10T10:12:13.531775Z",
+                        "kernel": {
+                            "all": {
+                                "load": {
+                                    "@instances": [
+                                        {"name": "1 minute", "value": 1.3},
+                                        {"name": "5 minute", "value": 1.33},
+                                        {"name": "15 minute", "value": 1.38},
+                                    ]
+                                }
+                            }
                         },
-                        {
-                            "@interval": "1",
-                            "@timestamp": "2022-12-14T13:12:12.901382Z",
+                        "mem": {
+                            "util": {"used": {"@unit": "Kbyte", "value": 15401408}}
                         },
-                    ]
-                )
+                    },
+                    {
+                        "@interval": "1",
+                        "@timestamp": "2023-11-10T10:12:14.027241Z",
+                        "disk": {
+                            "all": {
+                                "read": {"@unit": "count/s", "value": 14},
+                                "write": {"@unit": "count/s", "value": 263.993},
+                            }
+                        },
+                        "kernel": {
+                            "all": {
+                                "cpu": {
+                                    "sys": {"@unit": "ms/s", "value": 439.988},
+                                    "user": {"@unit": "ms/s", "value": 759.979},
+                                },
+                                "load": {
+                                    "@instances": [
+                                        {"name": "1 minute", "value": 1.3},
+                                        {"name": "5 minute", "value": 1.33},
+                                        {"name": "15 minute", "value": 1.38},
+                                    ]
+                                },
+                            }
+                        },
+                        "mem": {
+                            "util": {"used": {"@unit": "Kbyte", "value": 15464512}}
+                        },
+                    },
+                ]
             )
         )
 
@@ -41,6 +75,7 @@ class PCPTest(unittest.TestCase):
     def test_functional(self):
         input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1.0,
+            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
             timeout=5,
         )
 

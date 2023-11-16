@@ -44,17 +44,25 @@ Start the PCP data logging tools
 
 <table><tbody>
 <tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>PcpInputParams</td></tr>
-<tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>float</code>)</summary>
+<tr><th>Properties</th><td><details><summary>pmlogger_conf (<code>string</code>)</summary>
+                <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
+            </details><details><summary>pmlogger_interval (<code>float</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds (float) used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>float</code></td><tr><th>Units:</th><td>nanoseconds</td></tr>
 </tbody></table>
+            </details><details><summary>pmlogger_metrics (<code>string</code>)</summary>
+                <table><tbody><tr><th>Name:</th><td>pmlogger metrics to report</td></tr><tr><th>Description:</th><td>The pmrep-compatible metrics values to report as a space-separated string.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>&#34;kernel.all.cpu.user kernel.all.cpu.sys kernel.all.load mem.util.used disk.all.read disk.all.write&#34;</code></pre></td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
             </details><details><summary>timeout (<code>int</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>pmlogger timeout seconds</td></tr><tr><th>Description:</th><td>Timeout in seconds after which to cancel the pmlogger collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>int</code></td>
 </tbody></table>
             </details></td></tr>
 <tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>PcpInputParams (<code>object</code>)</summary>
-            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pmlogger_interval (<code>float</code>)</summary>
+            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pmlogger_conf (<code>string</code>)</summary>
+        <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
+        </details><details><summary>pmlogger_interval (<code>float</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>pmlogger logging interval</td></tr><tr><th>Description:</th><td>The logging interval in seconds (float) used by pmlogger for data collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>float</code></td><tr><th>Units:</th><td>nanoseconds</td></tr>
 </tbody></table>
+        </details><details><summary>pmlogger_metrics (<code>string</code>)</summary>
+        <table><tbody><tr><th>Name:</th><td>pmlogger metrics to report</td></tr><tr><th>Description:</th><td>The pmrep-compatible metrics values to report as a space-separated string.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>&#34;kernel.all.cpu.user kernel.all.cpu.sys kernel.all.load mem.util.used disk.all.read disk.all.write&#34;</code></pre></td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
         </details><details><summary>timeout (<code>int</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>pmlogger timeout seconds</td></tr><tr><th>Description:</th><td>Timeout in seconds after which to cancel the pmlogger collection</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>int</code></td>
 </tbody></table>
@@ -85,181 +93,26 @@ Start the PCP data logging tools
 
 <table><tbody>
 <tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>PerfOutput</td></tr>
-<tr><th>Properties</th><td><details><summary>pcp_output (<code>list[<code>reference[IntervalOutput]</code>]</code>)</summary>
-                <table><tbody><tr><th>Name:</th><td>PCP output list</td></tr><tr><th>Description:</th><td>Performance data from PCP provided in a list format</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>list[<code>reference[IntervalOutput]</code>]</code></td><tr><td colspan="2">
+<tr><th>Properties</th><td><details><summary>pcp_output (<code>list[<code>
+    any</code>]</code>)</summary>
+                <table><tbody><tr><th>Name:</th><td>PCP output list</td></tr><tr><th>Description:</th><td>List of of performance data in intervals from PCP</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>list[<code>
+    any</code>]</code></td><tr><td colspan="2">
     <details>
         <summary>List items</summary>
-        <table><tbody><tr><th>Type:</th><td><code>reference[IntervalOutput]</code></td><tr><th>Referenced object:</th><td>IntervalOutput</td></tr></tbody></table>
+        <table><tbody><tr><th>Type:</th><td><code>
+    any</code></td></tbody></table>
     </details>
 </td></tr></tbody></table>
             </details></td></tr>
-<tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>IntervalOutput (<code>object</code>)</summary>
-            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>@interval (<code>int</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>Interval ID</td></tr><tr><th>Description:</th><td>The interval ID as reported by PCP</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>int</code></td>
-</tbody></table>
-        </details><details><summary>@timestamp (<code>string</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>Interval timestamp</td></tr><tr><th>Description:</th><td>The timestamp of the reported interval</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-        </details><details><summary>commit (<code>map[<code>string</code>, <code>
+<tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>PerfOutput (<code>object</code>)</summary>
+            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pcp_output (<code>list[<code>
     any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>commit</td></tr><tr><th>Description:</th><td>The commit for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
+        <table><tbody><tr><th>Name:</th><td>PCP output list</td></tr><tr><th>Description:</th><td>List of of performance data in intervals from PCP</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>list[<code>
     any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>disk (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>disk</td></tr><tr><th>Description:</th><td>The disk structure for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>kbin (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>kbin</td></tr><tr><th>Description:</th><td>The KB in value for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>kbout (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>kbout</td></tr><tr><th>Description:</th><td>The KB out value for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>kernel (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>kernel</td></tr><tr><th>Description:</th><td>The kernel CPU structure for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>mem (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>mem</td></tr><tr><th>Description:</th><td>The memory structure for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>memused (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>memused</td></tr><tr><th>Description:</th><td>The memory used value for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>pktin (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>pktin</td></tr><tr><th>Description:</th><td>The packets in for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details><details><summary>pktout (<code>map[<code>string</code>, <code>
-    any</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>pktout</td></tr><tr><th>Description:</th><td>The packets out for the interval</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>map[<code>string</code>, <code>
-    any</code>]</code></td><tr><td colspan="2">
-    <details>
-        <summary>Key type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>string</code></td></tbody></table>
-    </details>
-</td></tr>
-<tr><td colspan="2">
-    <details>
-        <summary>Value type</summary>
-        <table><tbody><tr><th>Type:</th><td><code>
-    any</code></td></tbody></table>
-    </details>
-</td></tr>
-</tbody></table>
-        </details></td></tr>
-</tbody></table>
-        </details><details><summary>PerfOutput (<code>object</code>)</summary>
-            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>pcp_output (<code>list[<code>reference[IntervalOutput]</code>]</code>)</summary>
-        <table><tbody><tr><th>Name:</th><td>PCP output list</td></tr><tr><th>Description:</th><td>Performance data from PCP provided in a list format</td></tr><tr><th>Required:</th><td>Yes</td></tr><tr><th>Type:</th><td><code>list[<code>reference[IntervalOutput]</code>]</code></td><tr><td colspan="2">
     <details>
         <summary>List items</summary>
-        <table><tbody><tr><th>Type:</th><td><code>reference[IntervalOutput]</code></td><tr><th>Referenced object:</th><td>IntervalOutput</td></tr></tbody></table>
+        <table><tbody><tr><th>Type:</th><td><code>
+    any</code></td></tbody></table>
     </details>
 </td></tr></tbody></table>
         </details></td></tr>

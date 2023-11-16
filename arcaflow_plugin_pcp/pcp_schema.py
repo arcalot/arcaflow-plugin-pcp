@@ -5,6 +5,35 @@ from arcaflow_plugin_sdk import plugin, schema
 
 @dataclass
 class PcpInputParams:
+    pmlogger_metrics: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmlogger metrics to report"),
+        schema.description(
+            "The pmrep-compatible metrics values to report as a"
+            " space-separated string."
+        ),
+    ] = (
+            "kernel.all.cpu.user kernel.all.cpu.sys kernel.all.load"
+            " mem.util.used disk.all.read disk.all.write"
+        )
+    process_pmlogger_only: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("only process pmlogger output to json"),
+        schema.description(
+            "If set, the plugin performs no data collection and instead"
+            " only processes the user-provided pmlogger output into the"
+            " JSON format. Requires 'pmlogger_file_path'"
+        ),
+    ] = False
+    pmlogger_file_path: typing.Annotated[
+        typing.Optional[str],
+        schema.required_if(process_pmlogger_only),
+        schema.name("file path to pmlogger output"),
+        schema.description(
+            "The file path for the user-provided pmlogger output for"
+            " processing into JSON format. Requires 'process_pmlogger_only."
+        ),
+    ] = None
     pmlogger_interval: typing.Annotated[
         typing.Optional[float],
         schema.units(schema.UNIT_TIME),
@@ -21,79 +50,26 @@ class PcpInputParams:
             "Timeout in seconds after which to cancel the pmlogger collection"
         ),
     ] = None
-
-
-@dataclass
-class IntervalOutput:
-    interval: typing.Annotated[
-        int,
-        schema.id("@interval"),
-        schema.name("Interval ID"),
-        schema.description("The interval ID as reported by PCP"),
-    ]
-    timestamp: typing.Annotated[
-        str,
-        schema.id("@timestamp"),
-        schema.name("Interval timestamp"),
-        schema.description("The timestamp of the reported interval"),
-    ]
-    commit: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("commit"),
-        schema.description("The commit for the interval"),
+    pmlogger_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmlogger configuration file"),
+        schema.description(
+            "Complete configuration file content for pmlogger as a multi-line string."
+            " If no config file is provided, a default one will be generated."
+        ),
     ] = None
-    disk: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("disk"),
-        schema.description("The disk structure for the interval"),
-    ] = None
-    kbin: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("kbin"),
-        schema.description("The KB in value for the interval"),
-    ] = None
-    kbout: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("kbout"),
-        schema.description("The KB out value for the interval"),
-    ] = None
-    kernel: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("kernel"),
-        schema.description("The kernel CPU structure for the interval"),
-    ] = None
-    mem: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("mem"),
-        schema.description("The memory structure for the interval"),
-    ] = None
-    memused: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("memused"),
-        schema.description("The memory used value for the interval"),
-    ] = None
-    pktin: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("pktin"),
-        schema.description("The packets in for the interval"),
-    ] = None
-    pktout: typing.Annotated[
-        typing.Optional[typing.Dict[str, typing.Any]],
-        schema.name("pktout"),
-        schema.description("The packets out for the interval"),
-    ] = None
-
-
-interval_output_schema = schema.ListType(plugin.build_object_schema(IntervalOutput))
 
 
 @dataclass
 class PerfOutput:
     pcp_output: typing.Annotated[
-        typing.List[IntervalOutput],
+        typing.List[typing.Any],
         schema.name("PCP output list"),
-        schema.description("Performance data from PCP provided in a list format"),
+        schema.description("List of of performance data in intervals from PCP"),
     ]
+
+
+perf_output_schema = plugin.build_object_schema(PerfOutput)
 
 
 @dataclass
