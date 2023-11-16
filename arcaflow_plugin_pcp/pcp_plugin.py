@@ -164,9 +164,7 @@ class StartPcpStep:
                 )
             )
         pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
-        return "success", PerfOutput(
-            pcp_metrics_list
-        )
+        return "success", PerfOutput(pcp_metrics_list)
 
 
 if __name__ == "__main__":
