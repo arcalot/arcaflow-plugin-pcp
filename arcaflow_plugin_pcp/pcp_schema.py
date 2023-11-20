@@ -24,7 +24,7 @@ class PcpInputParams:
             "The logging interval in seconds (float) used by pmlogger"
             " for data collection"
         ),
-    ] = None
+    ] = 1.0
     timeout: typing.Annotated[
         typing.Optional[int],
         schema.name("pmlogger timeout seconds"),
