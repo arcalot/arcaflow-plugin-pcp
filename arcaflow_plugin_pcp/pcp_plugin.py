@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+from time import sleep
 import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
@@ -101,16 +102,13 @@ class StartPcpStep:
 
         try:
             print("Gathering data... Use Ctrl-C to stop.")
-            pmlogger_result = subprocess.Popen(
+            subprocess.Popen(
                 pmlogger_cmd,
                 text=True,
             )
 
             # Block waiting on the cancel signal
             self.exit.wait(params.timeout)
-
-            # When the cancel signal is received, terminate pmlogger and continue
-            pmlogger_result.terminate()
 
         except subprocess.CalledProcessError as error:
             return "error", Error(
@@ -121,7 +119,7 @@ class StartPcpStep:
 
         except (KeyboardInterrupt, SystemExit):
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
-            self.exit.set()
+            pass
 
         # Reference command:
         # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
@@ -144,27 +142,42 @@ class StartPcpStep:
         pcp2json_cmd.extend(metrics)
         print(f"Reporting metrics for: {params.pmlogger_metrics}")
 
-        try:
-            pcp_out = (
-                (
-                    subprocess.check_output(
-                        pcp2json_cmd,
-                        text=True,
-                        stderr=subprocess.STDOUT,
+        max_retries = 1
+        retries = 0
+        while retries <= max_retries:
+            try:
+                pcp_out = (
+                    (
+                        subprocess.check_output(
+                            pcp2json_cmd,
+                            text=True,
+                            stderr=subprocess.STDOUT,
+                        )
                     )
+                    .strip()
+                    .split("\n", 2)[2]
                 )
-                .strip()
-                .split("\n", 2)[2]
-            )
-            pcp_out_json = json.loads(pcp_out)
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
-            )
-        pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
-        return "success", PerfOutput(pcp_metrics_list)
+                pcp_out_json = json.loads(pcp_out)
+            except subprocess.CalledProcessError as error:
+                if retries < max_retries:
+                    retries += 1
+                    print(
+                        f"{error.output} "
+                        f"Retrying in {params.pmlogger_interval} seconds..."
+                    )
+                    sleep(params.pmlogger_interval)
+                    continue
+                else:
+                    return "error", Error(
+                        "{} failed with return code {}:\n{}".format(
+                            error.cmd[0], error.returncode, error.output
+                        )
+                    )
+            pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+            return "success", PerfOutput(pcp_metrics_list)
+
+        # If we get here, something unexpected went wrong
+        return "error", Error("Unknown failure attempting to process pmlogger output")
 
 
 if __name__ == "__main__":
