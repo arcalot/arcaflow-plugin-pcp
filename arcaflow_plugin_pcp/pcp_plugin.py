@@ -133,7 +133,7 @@ class StartPcpStep:
             "-a",
             "pmlogger-out",
             "-f",
-            "%Y-%m-%dT%H:%M:%S.%fZ",
+            "%FT%T.%f",
             "-c",
             "/etc/pcp/pmrep/",
             "-P",
