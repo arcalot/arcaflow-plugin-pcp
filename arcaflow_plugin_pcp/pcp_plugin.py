@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+from time import sleep
 import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
@@ -89,7 +90,7 @@ class StartPcpStep:
                     )
                 )
 
-        # Start pmlogger
+        # Start pmlogger to collect metrics
         pmlogger_cmd = [
             "/usr/bin/pmlogger",
             "-c",
@@ -101,16 +102,13 @@ class StartPcpStep:
 
         try:
             print("Gathering data... Use Ctrl-C to stop.")
-            pmlogger_result = subprocess.Popen(
+            subprocess.Popen(
                 pmlogger_cmd,
                 text=True,
             )
 
-            # Block waiting on the cancel signal
+            # Block here, waiting on the cancel signal
             self.exit.wait(params.timeout)
-
-            # When the cancel signal is received, terminate pmlogger and continue
-            pmlogger_result.terminate()
 
         except subprocess.CalledProcessError as error:
             return "error", Error(
@@ -119,15 +117,13 @@ class StartPcpStep:
                 )
             )
 
+        # Secondary block interrupt is via the KeyboardInterrupt exception.
+        # This enables running the plugin stand-alone without a workflow.
         except (KeyboardInterrupt, SystemExit):
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
-            self.exit.set()
+            pass
 
-        # Reference command:
-        # pcp2json -a _pcp/${PTS_FILENAME} -t 1s -c pts/pcp2json.conf \
-        # :sar :sar-b :sar-r :collectl-sn -E | tail -n+3 > ${PTS_FILENAME}.json
-
-        # Convert output to json
+        # Convert the pmlogger output to json
         pcp2json_cmd = [
             "/usr/bin/pcp2json",
             "-a",
@@ -141,30 +137,58 @@ class StartPcpStep:
             "-E",
         ]
 
+        # The list of metrics to collect is appended to the pcp2json command
         pcp2json_cmd.extend(metrics)
+
         print(f"Reporting metrics for: {params.pmlogger_metrics}")
 
-        try:
-            pcp_out = (
-                (
-                    subprocess.check_output(
-                        pcp2json_cmd,
-                        text=True,
-                        stderr=subprocess.STDOUT,
+        max_retries = 1
+        retries = 0
+        # Here we give max_retries chances to run the pcp2json conversion.
+        # This covers the situation where pmlogger is cancelled before a
+        # params.pmlogger_interval time has passed, which can cause pcp2json
+        # to fail.
+        while retries <= max_retries:
+            try:
+                pcp_out = (
+                    (
+                        subprocess.check_output(
+                            pcp2json_cmd,
+                            text=True,
+                            stderr=subprocess.STDOUT,
+                        )
                     )
+                    .strip()
+                    .split("\n", 2)[2]
                 )
-                .strip()
-                .split("\n", 2)[2]
-            )
-            pcp_out_json = json.loads(pcp_out)
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
-            )
-        pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
-        return "success", PerfOutput(pcp_metrics_list)
+                pcp_out_json = json.loads(pcp_out)
+            except subprocess.CalledProcessError as error:
+                # If the pcp2json command fails, we first attempt to retry.
+                if retries < max_retries:
+                    retries += 1
+                    print(
+                        f"{error.output} "
+                        f"Retrying in {params.pmlogger_interval} seconds..."
+                    )
+                    sleep(params.pmlogger_interval)
+                    continue
+                # After max_retries, if there is still an exception in
+                # the pcp2json command, we return an error.
+                else:
+                    return "error", Error(
+                        "{} failed with return code {}:\n{}".format(
+                            error.cmd[0], error.returncode, error.output
+                        )
+                    )
+
+            # If pcp2json completes without an exception, we return success.
+            pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+            return "success", PerfOutput(pcp_metrics_list)
+
+        # Since the above while loop should always return either success or error,
+        # and should never come to its natural end, if we get here, something
+        # unexpected went wrong.
+        return "error", Error("Unknown failure attempting to process pmlogger output")
 
 
 if __name__ == "__main__":
