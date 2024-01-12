@@ -198,14 +198,19 @@ class StartPcpStep:
                     )
 
             if params.generate_csv:
-                csv_out = (
-                    subprocess.check_output(
+                try:
+                    csv_out = subprocess.check_output(
                         pcp2csv_cmd,
                         text=True,
                         stderr=subprocess.STDOUT,
                     )
-                )
-                print(csv_out)
+                    print(csv_out)
+                except subprocess.CalledProcessError as error:
+                    print(
+                        "{} failed with return code {}:\n{}".format(
+                            error.cmd[0], error.returncode, error.output
+                        )
+                    )
 
             # If pcp2json completes without an exception, we return success.
             pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
