@@ -40,6 +40,14 @@ class PcpInputParams:
             " If no config file is provided, a default one will be generated."
         ),
     ] = None
+    generate_csv: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("generate CSV output"),
+        schema.description(
+            "Generates the data payload also in CSV format. This output goes to "
+            "the debug_logs, or to stderr if the --debug flag is used."
+        )
+    ] = False
 
 
 @dataclass
