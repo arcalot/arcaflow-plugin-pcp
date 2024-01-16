@@ -145,14 +145,6 @@ class StartPcpStep:
         # The list of metrics to collect is appended to the pcp2json command
         pcp2json_cmd.extend(metrics)
 
-        # Initialize (optional) pcp2csv command
-        pcp2csv_cmd = [
-            "/usr/bin/pcp2csv",
-        ]
-
-        pcp2csv_cmd.extend(pcp2_flags)
-        pcp2csv_cmd.extend(metrics)
-
         print(f"pcp2json command: {pcp2json_cmd}")
 
         print(f"Reporting metrics for: {params.pmlogger_metrics}")
@@ -198,6 +190,15 @@ class StartPcpStep:
                     )
 
             if params.generate_csv:
+
+                # Initialize (optional) pcp2csv command
+                pcp2csv_cmd = [
+                    "/usr/bin/pcp2csv",
+                ]
+
+                pcp2csv_cmd.extend(pcp2_flags)
+                pcp2csv_cmd.extend(metrics)
+                
                 try:
                     csv_out = subprocess.check_output(
                         pcp2csv_cmd,

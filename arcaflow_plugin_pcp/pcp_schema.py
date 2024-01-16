@@ -13,7 +13,7 @@ class PcpInputParams:
             " space-separated string."
         ),
     ] = (
-        "kernel.cpu.util kernel.all.load" " mem.util.used disk.all.read disk.all.write"
+        "kernel.cpu.util kernel.all.load mem.util.used disk.all.read disk.all.write"
     )
     pmlogger_interval: typing.Annotated[
         typing.Optional[float],
