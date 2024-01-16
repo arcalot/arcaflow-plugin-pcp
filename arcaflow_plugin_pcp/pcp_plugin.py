@@ -123,22 +123,29 @@ class StartPcpStep:
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
             pass
 
-        # Convert the pmlogger output to json
-        pcp2json_cmd = [
-            "/usr/bin/pcp2json",
+        pcp2_flags = [
             "-a",
             "pmlogger-out",
             "-f",
             "%FT%T.%f",
             "-c",
-            "/etc/pcp/pmrep/",
+            "/etc/pcp/pmrep",
             "-P",
             "6",
+        ]
+
+        # Initialized pcp2json command
+        pcp2json_cmd = [
+            "/usr/bin/pcp2json",
             "-E",
         ]
 
+        pcp2json_cmd.extend(pcp2_flags)
+
         # The list of metrics to collect is appended to the pcp2json command
         pcp2json_cmd.extend(metrics)
+
+        print(f"pcp2json command: {pcp2json_cmd}")
 
         print(f"Reporting metrics for: {params.pmlogger_metrics}")
 
@@ -162,6 +169,7 @@ class StartPcpStep:
                     .split("\n", 2)[2]
                 )
                 pcp_out_json = json.loads(pcp_out)
+
             except subprocess.CalledProcessError as error:
                 # If the pcp2json command fails, we first attempt to retry.
                 if retries < max_retries:
@@ -176,6 +184,29 @@ class StartPcpStep:
                 # the pcp2json command, we return an error.
                 else:
                     return "error", Error(
+                        "{} failed with return code {}:\n{}".format(
+                            error.cmd[0], error.returncode, error.output
+                        )
+                    )
+
+            if params.generate_csv:
+                # Initialize (optional) pcp2csv command
+                pcp2csv_cmd = [
+                    "/usr/bin/pcp2csv",
+                ]
+
+                pcp2csv_cmd.extend(pcp2_flags)
+                pcp2csv_cmd.extend(metrics)
+
+                try:
+                    csv_out = subprocess.check_output(
+                        pcp2csv_cmd,
+                        text=True,
+                        stderr=subprocess.STDOUT,
+                    )
+                    print(csv_out)
+                except subprocess.CalledProcessError as error:
+                    print(
                         "{} failed with return code {}:\n{}".format(
                             error.cmd[0], error.returncode, error.output
                         )
