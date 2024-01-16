@@ -190,7 +190,6 @@ class StartPcpStep:
                     )
 
             if params.generate_csv:
-
                 # Initialize (optional) pcp2csv command
                 pcp2csv_cmd = [
                     "/usr/bin/pcp2csv",
@@ -198,7 +197,7 @@ class StartPcpStep:
 
                 pcp2csv_cmd.extend(pcp2_flags)
                 pcp2csv_cmd.extend(metrics)
-                
+
                 try:
                     csv_out = subprocess.check_output(
                         pcp2csv_cmd,
