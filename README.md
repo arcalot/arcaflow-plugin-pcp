@@ -77,7 +77,9 @@ Start the PCP data logging tools
 
 <table><tbody>
 <tr><th>Type:</th><td><code>scope</code></td><tr><th>Root object:</th><td>PcpInputParams</td></tr>
-<tr><th>Properties</th><td><details><summary>generate_csv (<code>bool</code>)</summary>
+<tr><th>Properties</th><td><details><summary>flatten (<code>bool</code>)</summary>
+                <table><tbody><tr><th>Name:</th><td>flatten JSON structure</td></tr><tr><th>Description:</th><td>Processes the metrics first into a two-dimensional format via the pcp2csv converter, and then converts the CSV to JSON, effectively flattening the data structure. This is useful when indexing metrics to a service like Elasticsearch.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>false</code></pre></td></tr><tr><th>Type:</th><td><code>bool</code></td></tbody></table>
+            </details><details><summary>generate_csv (<code>bool</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>generate CSV output</td></tr><tr><th>Description:</th><td>Generates the data payload also in CSV format. This output goes to the debug_logs, or to stderr if the --debug flag is used.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>false</code></pre></td></tr><tr><th>Type:</th><td><code>bool</code></td></tbody></table>
             </details><details><summary>pmlogger_conf (<code>string</code>)</summary>
                 <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
@@ -91,7 +93,9 @@ Start the PCP data logging tools
 </tbody></table>
             </details></td></tr>
 <tr><td colspan="2"><details><summary><strong>Objects</strong></summary><details><summary>PcpInputParams (<code>object</code>)</summary>
-            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>generate_csv (<code>bool</code>)</summary>
+            <table><tbody><tr><th>Type:</th><td><code>object</code></td><tr><th>Properties</th><td><details><summary>flatten (<code>bool</code>)</summary>
+        <table><tbody><tr><th>Name:</th><td>flatten JSON structure</td></tr><tr><th>Description:</th><td>Processes the metrics first into a two-dimensional format via the pcp2csv converter, and then converts the CSV to JSON, effectively flattening the data structure. This is useful when indexing metrics to a service like Elasticsearch.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>false</code></pre></td></tr><tr><th>Type:</th><td><code>bool</code></td></tbody></table>
+        </details><details><summary>generate_csv (<code>bool</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>generate CSV output</td></tr><tr><th>Description:</th><td>Generates the data payload also in CSV format. This output goes to the debug_logs, or to stderr if the --debug flag is used.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Default (JSON encoded):</th><td><pre><code>false</code></pre></td></tr><tr><th>Type:</th><td><code>bool</code></td></tbody></table>
         </details><details><summary>pmlogger_conf (<code>string</code>)</summary>
         <table><tbody><tr><th>Name:</th><td>pmlogger configuration file</td></tr><tr><th>Description:</th><td>Complete configuration file content for pmlogger as a multi-line string. If no config file is provided, a default one will be generated.</td></tr><tr><th>Required:</th><td>No</td></tr><tr><th>Type:</th><td><code>string</code></td></tbody></table>
