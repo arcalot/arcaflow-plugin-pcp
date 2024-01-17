@@ -53,7 +53,7 @@ class PcpInputParams:
             "pcp2csv converter, and then converts the CSV to JSON, effectively "
             "flattening the data structure. This is useful when indexing metrics "
             "to a service like Elasticsearch."
-        )
+        ),
     ] = False
 
 

@@ -165,14 +165,10 @@ class StartPcpStep:
                 pcp2csv_cmd.extend(metrics)
 
                 try:
-                    csv_out = (
-                        (
-                            subprocess.check_output(
-                                pcp2csv_cmd,
-                                text=True,
-                                stderr=subprocess.STDOUT,
-                            )
-                        )
+                    csv_out = subprocess.check_output(
+                        pcp2csv_cmd,
+                        text=True,
+                        stderr=subprocess.STDOUT,
                     )
                 except subprocess.CalledProcessError as error:
                     if params.flatten:
@@ -199,11 +195,11 @@ class StartPcpStep:
                                 error.cmd[0], error.returncode, error.output
                             )
                         )
-            
+
             if params.flatten:
                 reader = csv.DictReader(csv_out.splitlines())
                 pcp_metrics_list = [row for row in reader]
-                
+
             else:
                 try:
                     pcp_out = (
@@ -219,7 +215,6 @@ class StartPcpStep:
                     )
                     pcp_out_json = json.loads(pcp_out)
                     pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
-
 
                 except subprocess.CalledProcessError as error:
                     # If the pcp2json command fails, we first attempt to retry.
@@ -246,7 +241,6 @@ class StartPcpStep:
 
             # If pcp2json or pcp2csv completes without an exception, we return success.
             return "success", PerfOutput(pcp_metrics_list)
-            
 
         # Since the above while loop should always return either success or error,
         # and should never come to its natural end, if we get here, something
