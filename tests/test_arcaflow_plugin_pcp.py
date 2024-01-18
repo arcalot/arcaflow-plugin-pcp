@@ -115,7 +115,24 @@ class PCPTest(unittest.TestCase):
         input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1.0,
             pmlogger_metrics="kernel.all.cpu.user mem.util.used",
-            timeout=5,
+            timeout=3,
+        )
+
+        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+            params=input, run_id="ci_pcp"
+        )
+
+        print(f"==>> output_id is {output_id}")
+        print(f"==>> output_data is {output_data}")
+
+        self.assertEqual("success", output_id)
+        self.assertIsInstance(output_data.pcp_output, list)
+
+    def test_functional_flat(self):
+        input = pcp_plugin.PcpInputParams(
+            pmlogger_interval=1.0,
+            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+            timeout=3,
             flatten=True,
         )
 
