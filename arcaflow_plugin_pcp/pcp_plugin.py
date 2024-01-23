@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.9
 
 import json
+import csv
 import subprocess
 import sys
 from time import sleep
@@ -12,6 +13,22 @@ from pcp_schema import (
     PerfOutput,
     Error,
 )
+
+
+def run_oneshot_cmd(command_list):
+    try:
+        cmd_out = subprocess.check_output(
+            command_list,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        return "error", Error(
+            "{} failed with return code {}:\n{}".format(
+                error.cmd[0], error.returncode, error.output
+            )
+        )
+    return "completed", cmd_out
 
 
 class StartPcpStep:
@@ -52,18 +69,9 @@ class StartPcpStep:
             "start",
         ]
 
-        try:
-            subprocess.check_output(
-                pcmd_cmd,
-                stderr=subprocess.STDOUT,
-                text=True,
-            )
-        except subprocess.CalledProcessError as error:
-            return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
-            )
+        pcmd_return = run_oneshot_cmd(pcmd_cmd)
+        if "error" in pcmd_return[0]:
+            return pcmd_return
 
         # Create the pmlogger.conf file
         if params.pmlogger_conf:
@@ -78,17 +86,9 @@ class StartPcpStep:
                 "pmlogger.conf",
             ]
 
-            try:
-                subprocess.check_output(
-                    pmlogconf_cmd,
-                    text=True,
-                )
-            except subprocess.CalledProcessError as error:
-                return "error", Error(
-                    "{} failed with return code {}:\n{}".format(
-                        error.cmd[0], error.returncode, error.output
-                    )
-                )
+            pmlogconf_return = run_oneshot_cmd(pmlogconf_cmd)
+            if "error" in pmlogconf_return[0]:
+                return pmlogconf_return
 
         # Start pmlogger to collect metrics
         pmlogger_cmd = [
@@ -145,81 +145,75 @@ class StartPcpStep:
         # The list of metrics to collect is appended to the pcp2json command
         pcp2json_cmd.extend(metrics)
 
-        print(f"pcp2json command: {pcp2json_cmd}")
-
         print(f"Reporting metrics for: {params.pmlogger_metrics}")
 
+        if params.flatten or params.generate_csv:
+            # Initialize (optional) pcp2csv command
+            pcp2csv_cmd = [
+                "/usr/bin/pcp2csv",
+            ]
+
+            pcp2csv_cmd.extend(pcp2_flags)
+            pcp2csv_cmd.extend(metrics)
+
         max_retries = 1
-        retries = 0
+        pcp2csv_return = ("", "")
+        pcp2json_return = ("", "")
         # Here we give max_retries chances to run the pcp2json conversion.
         # This covers the situation where pmlogger is cancelled before a
         # params.pmlogger_interval time has passed, which can cause pcp2json
         # to fail.
-        while retries <= max_retries:
-            try:
-                pcp_out = (
-                    (
-                        subprocess.check_output(
-                            pcp2json_cmd,
-                            text=True,
-                            stderr=subprocess.STDOUT,
+        for _attempt in range(max_retries):
+            if params.flatten or params.generate_csv:
+                pcp2csv_status, pcp2csv_return = run_oneshot_cmd(pcp2csv_cmd)
+                if "error" in pcp2csv_status:
+                    if params.flatten:
+                        # If the pcp2csv command fails, we first attempt to retry.
+                        print(
+                            f"{pcp2csv_return} "
+                            f"Retrying in {params.pmlogger_interval} seconds...\n"
                         )
-                    )
-                    .strip()
-                    .split("\n", 2)[2]
-                )
-                pcp_out_json = json.loads(pcp_out)
+                        sleep(params.pmlogger_interval)
+                        continue
+                    print(pcp2csv_return + "; continuing")
 
-            except subprocess.CalledProcessError as error:
-                # If the pcp2json command fails, we first attempt to retry.
-                if retries < max_retries:
-                    retries += 1
+            if params.flatten:
+                reader = csv.DictReader(pcp2csv_return.splitlines())
+                pcp_metrics_list = list(reader)
+
+            else:
+                pcp2json_status, pcp2json_return = run_oneshot_cmd(pcp2json_cmd)
+                if "error" in pcp2json_status:
+                    # If the pcp2json command fails, we first attempt to retry.
                     print(
-                        f"{error.output} "
-                        f"Retrying in {params.pmlogger_interval} seconds..."
+                        f"{pcp2json_return} "
+                        f"Retrying in {params.pmlogger_interval} seconds...\n"
                     )
                     sleep(params.pmlogger_interval)
                     continue
-                # After max_retries, if there is still an exception in
-                # the pcp2json command, we return an error.
-                else:
-                    return "error", Error(
-                        "{} failed with return code {}:\n{}".format(
-                            error.cmd[0], error.returncode, error.output
-                        )
-                    )
+                pcp_out_json = json.loads(pcp2json_return.strip().split("\n", 2)[2])
+                pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
 
             if params.generate_csv:
-                # Initialize (optional) pcp2csv command
-                pcp2csv_cmd = [
-                    "/usr/bin/pcp2csv",
-                ]
+                # Send the CSV format to stdout, if requested
+                print(pcp2csv_return)
 
-                pcp2csv_cmd.extend(pcp2_flags)
-                pcp2csv_cmd.extend(metrics)
-
-                try:
-                    csv_out = subprocess.check_output(
-                        pcp2csv_cmd,
-                        text=True,
-                        stderr=subprocess.STDOUT,
-                    )
-                    print(csv_out)
-                except subprocess.CalledProcessError as error:
-                    print(
-                        "{} failed with return code {}:\n{}".format(
-                            error.cmd[0], error.returncode, error.output
-                        )
-                    )
-
-            # If pcp2json completes without an exception, we return success.
-            pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+            # If pcp2json or pcp2csv completes without an exception, we return success.
             return "success", PerfOutput(pcp_metrics_list)
 
-        # Since the above while loop should always return either success or error,
-        # and should never come to its natural end, if we get here, something
-        # unexpected went wrong.
-        return "error", Error("Unknown failure attempting to process pmlogger output")
+        else:
+            # Return the appropriate error condition after max_retries
+            if "error" in pcp2json_status:
+                return pcp2json_return
+            elif "error" in pcp2csv_status:
+                return pcp2csv_return
+
+            # Since the above for loop should always return either success or error,
+            # and should never come to its natural end, if we get here, something
+            # unexpected went wrong.
+            return "error", Error(
+                "Unknown failure attempting to process pmlogger output"
+            )
 
 
 if __name__ == "__main__":

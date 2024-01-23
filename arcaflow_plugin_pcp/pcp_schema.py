@@ -45,6 +45,16 @@ class PcpInputParams:
             "the debug_logs, or to stderr if the --debug flag is used."
         ),
     ] = False
+    flatten: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("flatten JSON structure"),
+        schema.description(
+            "Processes the metrics first into a two-dimensional format via the "
+            "pcp2csv converter, and then converts the CSV to JSON, effectively "
+            "flattening the data structure. This is useful when indexing metrics "
+            "to a service like Elasticsearch."
+        ),
+    ] = False
 
 
 @dataclass
