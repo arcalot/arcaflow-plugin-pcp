@@ -6,8 +6,8 @@ ARG package=arcaflow_plugin_pcp
 # quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase image to limit drift
 FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:stream9 as build
 ARG package
-RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core; useradd -U pcp
-
+RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
+RUN useradd -U pcp
 
 COPY poetry.lock /app/
 COPY pyproject.toml /app/
@@ -25,14 +25,14 @@ WORKDIR /app/${package}
 
 # Run tests and return coverage analysis
 RUN python -m coverage run tests/test_${package}.py \
-&& python -m coverage html -d /htmlcov --omit=/usr/local/*
+ && python -m coverage html -d /htmlcov --omit=/usr/local/*
 
 
 # STAGE 2 -- Build final plugin image
 FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:stream9
 ARG package
-RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core; useradd -U pcp
-
+RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
+RUN useradd -U pcp
 
 COPY --from=build /app/requirements.txt /app/
 COPY --from=build /htmlcov /htmlcov/
