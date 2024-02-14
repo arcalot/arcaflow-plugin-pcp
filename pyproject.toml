@@ -13,6 +13,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 arcaflow-plugin-sdk = "^0.13.0"
+requests = "^2.31.0"
 
 [build-system]
 requires = ["poetry-core"]
