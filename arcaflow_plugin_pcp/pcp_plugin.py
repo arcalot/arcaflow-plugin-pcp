@@ -151,6 +151,8 @@ class StartPcpStep:
             # Initialize (optional) pcp2csv command
             pcp2csv_cmd = [
                 "/usr/bin/pcp2csv",
+                "-l",
+                ",",
             ]
 
             pcp2csv_cmd.extend(pcp2_flags)
