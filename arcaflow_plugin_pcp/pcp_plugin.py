@@ -130,7 +130,7 @@ class StartPcpStep:
             "-f",
             # pmrep doesn't accept %z for the timezone,
             # so we'll get it explicitly via datetime
-            f"%FT%T.%f{datetime.now().astimezone().isoformat()[-6:]}",
+            f"%FT%T.%f{datetime.now().astimezone():%z}",
             "-c",
             "/etc/pcp/pmrep",
             "-P",
