@@ -145,6 +145,46 @@ class PCPTest(unittest.TestCase):
 
         self.assertEqual("success", output_id)
         self.assertIsInstance(output_data.pcp_output, list)
+    
+    def test_functional_user_pmlogger_conf(self):
+        f = open("tests/pmlogger.conf", "r")
+        pmlogger_conf = f.read()
+        input = pcp_plugin.PcpInputParams(
+            pmlogger_interval=1.0,
+            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+            timeout=3,
+            pmlogger_conf=pmlogger_conf
+        )
+
+        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+            params=input, run_id="ci_pcp"
+        )
+
+        print(f"==>> output_id is {output_id}")
+        print(f"==>> output_data is {output_data}")
+
+        self.assertEqual("success", output_id)
+        self.assertIsInstance(output_data.pcp_output, list)
+    
+    def test_functional_user_pmrep_conf(self):
+        f = open("tests/pmrep.conf", "r")
+        pmrep_conf = f.read()
+        input = pcp_plugin.PcpInputParams(
+            pmlogger_interval=1.0,
+            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+            timeout=3,
+            pmrep_conf=pmrep_conf
+        )
+
+        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+            params=input, run_id="ci_pcp"
+        )
+
+        print(f"==>> output_id is {output_id}")
+        print(f"==>> output_data is {output_data}")
+
+        self.assertEqual("success", output_id)
+        self.assertIsInstance(output_data.pcp_output, list)
 
 
 if __name__ == "__main__":
