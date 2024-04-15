@@ -138,6 +138,8 @@ class StartPcpStep:
         pcp2_flags = [
             "-a",
             "pmlogger-out",
+            "-t",
+            str(params.pmlogger_interval),
             "-f",
             # pmrep doesn't accept %z for the timezone,
             # so we'll get it explicitly via datetime
