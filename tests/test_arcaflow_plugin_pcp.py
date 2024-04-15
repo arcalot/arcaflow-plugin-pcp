@@ -145,7 +145,7 @@ class PCPTest(unittest.TestCase):
 
         self.assertEqual("success", output_id)
         self.assertIsInstance(output_data.pcp_output, list)
-    
+
     def test_functional_user_pmlogger_conf(self):
         f = open("tests/pmlogger.conf", "r")
         pmlogger_conf = f.read()
@@ -153,7 +153,7 @@ class PCPTest(unittest.TestCase):
             pmlogger_interval=1.0,
             pmlogger_metrics="kernel.all.cpu.user mem.util.used",
             timeout=3,
-            pmlogger_conf=pmlogger_conf
+            pmlogger_conf=pmlogger_conf,
         )
 
         output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
@@ -165,7 +165,7 @@ class PCPTest(unittest.TestCase):
 
         self.assertEqual("success", output_id)
         self.assertIsInstance(output_data.pcp_output, list)
-    
+
     def test_functional_user_pmrep_conf(self):
         f = open("tests/pmrep.conf", "r")
         pmrep_conf = f.read()
@@ -173,7 +173,7 @@ class PCPTest(unittest.TestCase):
             pmlogger_interval=1.0,
             pmlogger_metrics="kernel.all.cpu.user mem.util.used",
             timeout=3,
-            pmrep_conf=pmrep_conf
+            pmrep_conf=pmrep_conf,
         )
 
         output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
