@@ -35,6 +35,17 @@ class PcpInputParams:
         schema.description(
             "Complete configuration file content for pmlogger as a multi-line string."
             " If no config file is provided, a default one will be generated."
+            " WARNING -- INPUT NOT VALIDATED - USE AT YOUR OWN RISK"
+        ),
+    ] = None
+    pmrep_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmrep configuration file"),
+        schema.description(
+            "Complete configuration file content for pmrep as a multi-line string."
+            " If no config file is provided, a default one will be generated."
+            " This configuration is used internally for `pcp2json` and `pcp2csv`."
+            " WARNING -- INPUT NOT VALIDATED - USE AT YOUR OWN RISK"
         ),
     ] = None
     generate_csv: typing.Annotated[

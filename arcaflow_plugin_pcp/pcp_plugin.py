@@ -91,6 +91,17 @@ class StartPcpStep:
             if "error" in pmlogconf_return[0]:
                 return pmlogconf_return
 
+        # Import the pmrep configuration file, if provided
+        if params.pmrep_conf:
+            pmrep_conf_path = "pmrep.conf"
+            print("Using provided pmrep configuration file")
+            f = open(pmrep_conf_path, "w")
+            f.write(params.pmrep_conf)
+            f.close
+        else:
+            print("Using default pmrep configuration directory")
+            pmrep_conf_path = "/etc/pcp/pmrep"
+
         # Start pmlogger to collect metrics
         pmlogger_cmd = [
             "/usr/bin/pmlogger",
@@ -132,7 +143,7 @@ class StartPcpStep:
             # so we'll get it explicitly via datetime
             f"%FT%T.%f{datetime.now().astimezone():%z}",
             "-c",
-            "/etc/pcp/pmrep",
+            pmrep_conf_path,
             "-P",
             "6",
         ]
