@@ -4,6 +4,7 @@ import json
 import csv
 import subprocess
 import sys
+from pathlib import Path
 from time import sleep
 from datetime import datetime
 import typing
@@ -77,9 +78,7 @@ class StartPcpStep:
         # Create the pmlogger.conf file
         if params.pmlogger_conf:
             print("Using provided pmlogger configuration file")
-            f = open("pmlogger.conf", "w")
-            f.write(params.pmlogger_conf)
-            f.close
+            Path("pmlogger.conf").write_text(params.pmlogger_conf)
         else:
             print("Generating default pmlogger configuration file")
             pmlogconf_cmd = [
@@ -95,9 +94,7 @@ class StartPcpStep:
         if params.pmrep_conf:
             pmrep_conf_path = "pmrep.conf"
             print("Using provided pmrep configuration file")
-            f = open(pmrep_conf_path, "w")
-            f.write(params.pmrep_conf)
-            f.close
+            Path(pmrep_conf_path).write_text(params.pmrep_conf)
         else:
             print("Using default pmrep configuration directory")
             pmrep_conf_path = "/etc/pcp/pmrep"
