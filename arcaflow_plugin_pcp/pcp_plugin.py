@@ -143,7 +143,7 @@ class StartPcpStep:
             "-f",
             # pmrep doesn't accept %z for the timezone,
             # so we'll get it explicitly via datetime
-            f"%FT%T.%f{datetime.now().astimezone():%z}",
+            f"%FT%T.%f{str(datetime.now().astimezone())[-6:]}",
             "-c",
             pmrep_conf_path,
             "-P",
