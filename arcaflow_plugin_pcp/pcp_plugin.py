@@ -75,7 +75,8 @@ class StartPcpStep:
         if "error" in pcmd_return[0]:
             return pcmd_return
 
-        # Create the pmlogger.conf file
+        # Create the pmlogger.conf file from the user-provided contents or
+        # a default file with the generator command
         if params.pmlogger_conf:
             print("Using provided pmlogger configuration file")
             Path("pmlogger.conf").write_text(params.pmlogger_conf)
@@ -90,13 +91,14 @@ class StartPcpStep:
             if "error" in pmlogconf_return[0]:
                 return pmlogconf_return
 
-        # Import the pmrep configuration file, if provided
+        # Create the pmrep.conf file from the user-provided contents or
+        # point to the default system configuration directory
         if params.pmrep_conf:
             pmrep_conf_path = "pmrep.conf"
             print("Using provided pmrep configuration file")
             Path(pmrep_conf_path).write_text(params.pmrep_conf)
         else:
-            print("Using default pmrep configuration directory")
+            print("Using default /etc/pcp/pmrep configuration directory")
             pmrep_conf_path = "/etc/pcp/pmrep"
 
         # Start pmlogger to collect metrics

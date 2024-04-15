@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.9
 
 import unittest
+from pathlib import Path
 import pcp_plugin
 
 from arcaflow_plugin_sdk import plugin
@@ -126,7 +127,7 @@ class PCPTest(unittest.TestCase):
         print(f"==>> output_data is {output_data}")
 
         self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+        plugin.test_object_serialization(pcp_plugin.PerfOutput(output_data.pcp_output))
 
     def test_functional_flat(self):
         input = pcp_plugin.PcpInputParams(
@@ -144,11 +145,10 @@ class PCPTest(unittest.TestCase):
         print(f"==>> output_data is {output_data}")
 
         self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+        plugin.test_object_serialization(pcp_plugin.PerfOutput(output_data.pcp_output))
 
     def test_functional_user_pmlogger_conf(self):
-        f = open("tests/pmlogger.conf", "r")
-        pmlogger_conf = f.read()
+        pmlogger_conf = Path("tests/pmlogger.conf").read_text()
         input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1.0,
             pmlogger_metrics="kernel.all.cpu.user mem.util.used",
@@ -164,11 +164,10 @@ class PCPTest(unittest.TestCase):
         print(f"==>> output_data is {output_data}")
 
         self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+        plugin.test_object_serialization(pcp_plugin.PerfOutput(output_data.pcp_output))
 
     def test_functional_user_pmrep_conf(self):
-        f = open("tests/pmrep.conf", "r")
-        pmrep_conf = f.read()
+        pmrep_conf = Path("tests/pmrep.conf").read_text()
         input = pcp_plugin.PcpInputParams(
             pmlogger_interval=1.0,
             pmlogger_metrics="kernel.all.cpu.user mem.util.used",
@@ -184,7 +183,7 @@ class PCPTest(unittest.TestCase):
         print(f"==>> output_data is {output_data}")
 
         self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+        plugin.test_object_serialization(pcp_plugin.PerfOutput(output_data.pcp_output))
 
 
 if __name__ == "__main__":

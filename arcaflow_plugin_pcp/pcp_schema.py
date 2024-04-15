@@ -35,7 +35,9 @@ class PcpInputParams:
         schema.description(
             "Complete configuration file content for pmlogger as a multi-line string."
             " If no config file is provided, a default one will be generated."
-            " WARNING -- INPUT NOT VALIDATED - USE AT YOUR OWN RISK"
+            " NOTE -- INPUT NOT VALIDATED BY ARCAFLOW "
+            " ANY ERRORS ARE LIKELY TO BE PRODUCED AT THE END OF THE PLUGIN RUN AND"
+            " MAY RESULT IN WORKFLOW FAILURES."
         ),
     ] = None
     pmrep_conf: typing.Annotated[
@@ -43,9 +45,11 @@ class PcpInputParams:
         schema.name("pmrep configuration file"),
         schema.description(
             "Complete configuration file content for pmrep as a multi-line string."
-            " If no config file is provided, a default one will be generated."
+            " If no config file is provided, a default one will be used."
             " This configuration is used internally for `pcp2json` and `pcp2csv`."
-            " WARNING -- INPUT NOT VALIDATED - USE AT YOUR OWN RISK"
+            " NOTE -- INPUT NOT VALIDATED BY ARCAFLOW "
+            " ANY ERRORS ARE LIKELY TO BE PRODUCED AT THE END OF THE PLUGIN RUN AND"
+            " MAY RESULT IN WORKFLOW FAILURES."
         ),
     ] = None
     generate_csv: typing.Annotated[
