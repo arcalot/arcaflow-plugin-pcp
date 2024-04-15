@@ -5,6 +5,7 @@ import csv
 import subprocess
 import sys
 from time import sleep
+from datetime import datetime
 import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
@@ -127,7 +128,9 @@ class StartPcpStep:
             "-a",
             "pmlogger-out",
             "-f",
-            "%FT%T.%f",
+            # pmrep doesn't accept %z for the timezone,
+            # so we'll get it explicitly via datetime
+            f"%FT%T.%f{datetime.now().astimezone():%z}",
             "-c",
             "/etc/pcp/pmrep",
             "-P",
@@ -151,6 +154,8 @@ class StartPcpStep:
             # Initialize (optional) pcp2csv command
             pcp2csv_cmd = [
                 "/usr/bin/pcp2csv",
+                "-l",
+                ",",
             ]
 
             pcp2csv_cmd.extend(pcp2_flags)
