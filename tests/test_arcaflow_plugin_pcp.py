@@ -140,17 +140,17 @@ class PCPTest(unittest.TestCase):
                     **test,
                 )
 
-            output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
-                params=input, run_id="ci_pcp"
-            )
+                output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+                    params=input, run_id="ci_pcp"
+                )
 
-            print(f"==>> output_id is {output_id}")
-            print(f"==>> output_data is {output_data}")
+                print(f"==>> output_id is {output_id}")
+                print(f"==>> output_data is {output_data}")
 
-            self.assertEqual("success", output_id)
-            plugin.test_object_serialization(
-                pcp_plugin.PerfOutput(output_data.pcp_output)
-            )
+                self.assertEqual("success", output_id)
+                plugin.test_object_serialization(
+                    pcp_plugin.PerfOutput(output_data.pcp_output)
+                )
 
 
 if __name__ == "__main__":
