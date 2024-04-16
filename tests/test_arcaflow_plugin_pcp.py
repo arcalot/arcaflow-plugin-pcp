@@ -148,9 +148,12 @@ class PCPTest(unittest.TestCase):
                 print(f"==>> output_data is {output_data}")
 
                 self.assertEqual("success", output_id)
-                plugin.test_object_serialization(
-                    pcp_plugin.PerfOutput(output_data.pcp_output)
-                )
+                try:
+                    plugin.test_object_serialization(
+                        pcp_plugin.PerfOutput(output_data.pcp_output)
+                    )
+                except SystemExit:
+                    self.fail("Output failed schema validation")
 
 
 if __name__ == "__main__":
