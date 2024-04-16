@@ -150,7 +150,7 @@ class PCPTest(unittest.TestCase):
                 self.assertEqual("success", output_id)
                 plugin.test_object_serialization(
                     pcp_plugin.PerfOutput(output_data.pcp_output),
-                    fail=lambda _: self.fail("Output failed schema validation")
+                    fail=lambda _: self.fail("Output failed schema validation"),
                 )
 
 
