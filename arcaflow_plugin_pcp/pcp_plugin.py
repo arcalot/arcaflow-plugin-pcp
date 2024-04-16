@@ -98,8 +98,8 @@ class StartPcpStep:
             print("Using provided pmrep configuration file")
             Path(pmrep_conf_path).write_text(params.pmrep_conf)
         else:
-            print("Using default /etc/pcp/pmrep configuration directory")
             pmrep_conf_path = "/etc/pcp/pmrep"
+            print(f"Using default {pmrep_conf_path} configuration directory")
 
         # Start pmlogger to collect metrics
         pmlogger_cmd = [
