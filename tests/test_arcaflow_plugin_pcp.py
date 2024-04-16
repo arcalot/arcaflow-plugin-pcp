@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.9
 
 import unittest
+from pathlib import Path
 import pcp_plugin
 
 from arcaflow_plugin_sdk import plugin
@@ -112,39 +113,45 @@ class PCPTest(unittest.TestCase):
         plugin.test_object_serialization(pcp_plugin.Error(error="This is an error"))
 
     def test_functional(self):
-        input = pcp_plugin.PcpInputParams(
-            pmlogger_interval=1.0,
-            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
-            timeout=3,
-        )
+        tests = [
+            {
+                # Standard
+            },
+            {
+                # Flatten
+                "flatten": True
+            },
+            {
+                # User-provided pmlogger config
+                "pmlogger_conf": Path("tests/pmlogger.conf").read_text()
+            },
+            {
+                # User-provided pmrep config
+                "pmrep_conf": Path("tests/pmrep.conf").read_text()
+            },
+        ]
 
-        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
-            params=input, run_id="ci_pcp"
-        )
+        for test in tests:
+            with self.subTest(test=test):
+                input = pcp_plugin.PcpInputParams(
+                    pmlogger_interval=1.0,
+                    pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+                    timeout=3,
+                    **test,
+                )
 
-        print(f"==>> output_id is {output_id}")
-        print(f"==>> output_data is {output_data}")
+                output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+                    params=input, run_id="ci_pcp"
+                )
 
-        self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+                print(f"==>> output_id is {output_id}")
+                print(f"==>> output_data is {output_data}")
 
-    def test_functional_flat(self):
-        input = pcp_plugin.PcpInputParams(
-            pmlogger_interval=1.0,
-            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
-            timeout=3,
-            flatten=True,
-        )
-
-        output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
-            params=input, run_id="ci_pcp"
-        )
-
-        print(f"==>> output_id is {output_id}")
-        print(f"==>> output_data is {output_data}")
-
-        self.assertEqual("success", output_id)
-        self.assertIsInstance(output_data.pcp_output, list)
+                self.assertEqual("success", output_id)
+                plugin.test_object_serialization(
+                    pcp_plugin.PerfOutput(output_data.pcp_output),
+                    fail=lambda _: self.fail("Output failed schema validation"),
+                )
 
 
 if __name__ == "__main__":

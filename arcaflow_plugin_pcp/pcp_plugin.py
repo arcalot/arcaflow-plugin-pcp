@@ -4,6 +4,7 @@ import json
 import csv
 import subprocess
 import sys
+from pathlib import Path
 from time import sleep
 from datetime import datetime
 import typing
@@ -74,12 +75,11 @@ class StartPcpStep:
         if "error" in pcmd_return[0]:
             return pcmd_return
 
-        # Create the pmlogger.conf file
+        # Create the pmlogger.conf file from the user-provided contents or
+        # a default file with the generator command
         if params.pmlogger_conf:
             print("Using provided pmlogger configuration file")
-            f = open("pmlogger.conf", "w")
-            f.write(params.pmlogger_conf)
-            f.close
+            Path("pmlogger.conf").write_text(params.pmlogger_conf)
         else:
             print("Generating default pmlogger configuration file")
             pmlogconf_cmd = [
@@ -90,6 +90,16 @@ class StartPcpStep:
             pmlogconf_return = run_oneshot_cmd(pmlogconf_cmd)
             if "error" in pmlogconf_return[0]:
                 return pmlogconf_return
+
+        # Create the pmrep.conf file from the user-provided contents or
+        # point to the default system configuration directory
+        if params.pmrep_conf:
+            pmrep_conf_path = "pmrep.conf"
+            print("Using provided pmrep configuration file")
+            Path(pmrep_conf_path).write_text(params.pmrep_conf)
+        else:
+            pmrep_conf_path = "/etc/pcp/pmrep"
+            print(f"Using default {pmrep_conf_path} configuration directory")
 
         # Start pmlogger to collect metrics
         pmlogger_cmd = [
@@ -127,12 +137,14 @@ class StartPcpStep:
         pcp2_flags = [
             "-a",
             "pmlogger-out",
+            "-t",
+            str(params.pmlogger_interval),
             "-f",
             # pmrep doesn't accept %z for the timezone,
             # so we'll get it explicitly via datetime
-            f"%FT%T.%f{datetime.now().astimezone():%z}",
+            f"%FT%T.%f{str(datetime.now().astimezone())[-6:]}",
             "-c",
-            "/etc/pcp/pmrep",
+            pmrep_conf_path,
             "-P",
             "6",
         ]

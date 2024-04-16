@@ -2,6 +2,12 @@ import typing
 from dataclasses import dataclass
 from arcaflow_plugin_sdk import plugin, schema
 
+validation_warning = (
+    " NOTE: Input not validated by the plugin --"
+    " Any errors are likely to be produced at the end of the plugin run and"
+    " may result in workflow failures."
+)
+
 
 @dataclass
 class PcpInputParams:
@@ -10,9 +16,9 @@ class PcpInputParams:
         schema.name("pmlogger metrics to report"),
         schema.description(
             "The pmrep-compatible metrics values to report as a"
-            " space-separated string."
+            " space-separated string." + validation_warning
         ),
-    ] = "kernel.cpu.util kernel.all.load mem.util.used disk.all.read disk.all.write"
+    ] = ":vmstat :sar :sar-B :sar-w :sar-b :sar-H :sar-r"
     pmlogger_interval: typing.Annotated[
         typing.Optional[float],
         schema.units(schema.UNIT_TIME),
@@ -35,6 +41,17 @@ class PcpInputParams:
         schema.description(
             "Complete configuration file content for pmlogger as a multi-line string."
             " If no config file is provided, a default one will be generated."
+            + validation_warning
+        ),
+    ] = None
+    pmrep_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmrep configuration file"),
+        schema.description(
+            "Complete configuration file content for pmrep as a multi-line string."
+            " If no config file is provided, a default one will be used."
+            " This configuration is used internally for `pcp2json` and `pcp2csv`."
+            + validation_warning
         ),
     ] = None
     generate_csv: typing.Annotated[
