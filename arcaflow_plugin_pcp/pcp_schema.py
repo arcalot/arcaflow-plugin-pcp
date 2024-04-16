@@ -8,6 +8,7 @@ validation_warning = (
     " may result in workflow failures."
 )
 
+
 @dataclass
 class PcpInputParams:
     pmlogger_metrics: typing.Annotated[
@@ -15,8 +16,7 @@ class PcpInputParams:
         schema.name("pmlogger metrics to report"),
         schema.description(
             "The pmrep-compatible metrics values to report as a"
-            " space-separated string."
-            + validation_warning
+            " space-separated string." + validation_warning
         ),
     ] = ":vmstat :sar :sar-B :sar-w :sar-b :sar-H :sar-r"
     pmlogger_interval: typing.Annotated[
