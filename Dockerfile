@@ -4,7 +4,7 @@ ARG package=arcaflow_plugin_pcp
 # STAGE 1 -- Build module dependencies and run tests
 # The 'poetry' and 'coverage' modules are installed and verson-controlled in the
 # quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase image to limit drift
-FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:stream9 as build
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:0.4.0 as build
 ARG package
 RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
 RUN useradd -U pcp
@@ -29,7 +29,7 @@ RUN python -m coverage run tests/test_${package}.py \
 
 
 # STAGE 2 -- Build final plugin image
-FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:stream9
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:0.4.0
 ARG package
 RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
 RUN useradd -U pcp
