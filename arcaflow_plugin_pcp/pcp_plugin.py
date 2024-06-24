@@ -24,11 +24,9 @@ def run_oneshot_cmd(command_list):
             stderr=subprocess.STDOUT,
             text=True,
         )
-    except subprocess.CalledProcessError as error:
+    except subprocess.CalledProcessError as err:
         return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
-            )
+            f"{err.cmd[0]} failed with return code {err.returncode}:\n{err.output}"
         )
     return "completed", cmd_out
 
@@ -121,11 +119,9 @@ class StartPcpStep:
             # Block here, waiting on the cancel signal
             self.exit.wait(params.timeout)
 
-        except subprocess.CalledProcessError as error:
+        except subprocess.CalledProcessError as err:
             return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
+                f"{err.cmd[0]} failed with return code {err.returncode}:\n{err.output}"
             )
 
         # Secondary block interrupt is via the KeyboardInterrupt exception.
@@ -218,19 +214,16 @@ class StartPcpStep:
             # If pcp2json or pcp2csv completes without an exception, we return success.
             return "success", PerfOutput(pcp_metrics_list)
 
-        else:
-            # Return the appropriate error condition after max_retries
-            if "error" in pcp2json_status:
-                return pcp2json_return
-            elif "error" in pcp2csv_status:
-                return pcp2csv_return
+        # Return the appropriate error condition after max_retries
+        if "error" in pcp2json_status:
+            return pcp2json_return
+        if "error" in pcp2csv_status:
+            return pcp2csv_return
 
-            # Since the above for loop should always return either success or error,
-            # and should never come to its natural end, if we get here, something
-            # unexpected went wrong.
-            return "error", Error(
-                "Unknown failure attempting to process pmlogger output"
-            )
+        # Since the above for loop should always return either success or error,
+        # and should never come to its natural end, if we get here, something
+        # unexpected went wrong.
+        return "error", Error("Unknown failure attempting to process pmlogger output")
 
 
 if __name__ == "__main__":
