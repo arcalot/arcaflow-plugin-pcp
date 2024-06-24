@@ -131,9 +131,14 @@ class StartPcpStep:
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
 
         # Check the pmlogger output file
-        if os.stat("pmlogger-out.0").st_size == 0:
+        try:
+            if os.stat("pmlogger-out.0").st_size == 0:
+                return "error", Error(
+                    "The pmlogger output file is empty; Unable to process results."
+                )
+        except FileNotFoundError:
             return "error", Error(
-                "The pmlogger output file is empty; Unable to process results."
+                "The pmlogger output file was not found; Unable to process results."
             )
 
         pcp2_flags = [
