@@ -4,6 +4,7 @@ import json
 import csv
 import subprocess
 import sys
+import os
 from pathlib import Path
 from time import sleep
 from datetime import datetime
@@ -128,7 +129,12 @@ class StartPcpStep:
         # This enables running the plugin stand-alone without a workflow.
         except (KeyboardInterrupt, SystemExit):
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
-            pass
+
+        # Check the pmlogger output file
+        if os.stat("pmlogger-out.0").st_size == 0:
+            return "error", Error(
+                "The pmlogger output file is empty; Unable to process results."
+            )
 
         pcp2_flags = [
             "-a",
