@@ -216,9 +216,9 @@ class StartPcpStep:
 
         # Return the appropriate error condition after max_retries
         if "error" in pcp2json_status:
-            return pcp2json_return
+            return (pcp2json_status, pcp2json_return)
         if "error" in pcp2csv_status:
-            return pcp2csv_return
+            return (pcp2csv_status, pcp2csv_return)
 
         # Since the above for loop should always return either success or error,
         # and should never come to its natural end, if we get here, something
