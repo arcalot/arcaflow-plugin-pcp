@@ -181,8 +181,8 @@ class StartPcpStep:
             pcp2csv_cmd.extend(metrics)
 
         max_retries = 1
-        pcp2csv_status = ("", "")
-        pcp2json_status = ("", "")
+        pcp2csv_status = ""
+        pcp2json_status = ""
         # Here we give max_retries chances to run the pcp2json conversion.
         # This covers the situation where pmlogger is cancelled before a
         # params.pmlogger_interval time has passed, which can cause pcp2json
