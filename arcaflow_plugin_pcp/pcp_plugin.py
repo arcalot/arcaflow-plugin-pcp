@@ -234,7 +234,7 @@ class StartPcpStep:
         # Since the above for loop should always return either success or error,
         # and should never come to its natural end, if we get here, something
         # unexpected went wrong.
-        return "error", Error("Unknown failure attempting to process pmlogger output")
+        return "error", Error("Unexpected failure attempting to process pmlogger output")
 
 
 if __name__ == "__main__":
