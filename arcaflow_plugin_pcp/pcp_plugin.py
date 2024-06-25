@@ -4,6 +4,7 @@ import json
 import csv
 import subprocess
 import sys
+import os
 from pathlib import Path
 from time import sleep
 from datetime import datetime
@@ -24,11 +25,9 @@ def run_oneshot_cmd(command_list):
             stderr=subprocess.STDOUT,
             text=True,
         )
-    except subprocess.CalledProcessError as error:
+    except subprocess.CalledProcessError as err:
         return "error", Error(
-            "{} failed with return code {}:\n{}".format(
-                error.cmd[0], error.returncode, error.output
-            )
+            f"{err.cmd[0]} failed with return code {err.returncode}:\n{err.output}"
         )
     return "completed", cmd_out
 
@@ -121,18 +120,26 @@ class StartPcpStep:
             # Block here, waiting on the cancel signal
             self.exit.wait(params.timeout)
 
-        except subprocess.CalledProcessError as error:
+        except subprocess.CalledProcessError as err:
             return "error", Error(
-                "{} failed with return code {}:\n{}".format(
-                    error.cmd[0], error.returncode, error.output
-                )
+                f"{err.cmd[0]} failed with return code {err.returncode}:\n{err.output}"
             )
 
         # Secondary block interrupt is via the KeyboardInterrupt exception.
         # This enables running the plugin stand-alone without a workflow.
         except (KeyboardInterrupt, SystemExit):
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
-            pass
+
+        # Check the pmlogger output file
+        try:
+            if os.stat("pmlogger-out.0").st_size == 0:
+                return "error", Error(
+                    "The pmlogger output file is empty; Unable to process results."
+                )
+        except FileNotFoundError:
+            return "error", Error(
+                "The pmlogger output file was not found; Unable to process results."
+            )
 
         pcp2_flags = [
             "-a",
@@ -174,8 +181,8 @@ class StartPcpStep:
             pcp2csv_cmd.extend(metrics)
 
         max_retries = 1
-        pcp2csv_return = ("", "")
-        pcp2json_return = ("", "")
+        pcp2csv_status = ""
+        pcp2json_status = ""
         # Here we give max_retries chances to run the pcp2json conversion.
         # This covers the situation where pmlogger is cancelled before a
         # params.pmlogger_interval time has passed, which can cause pcp2json
@@ -218,19 +225,18 @@ class StartPcpStep:
             # If pcp2json or pcp2csv completes without an exception, we return success.
             return "success", PerfOutput(pcp_metrics_list)
 
-        else:
-            # Return the appropriate error condition after max_retries
-            if "error" in pcp2json_status:
-                return pcp2json_return
-            elif "error" in pcp2csv_status:
-                return pcp2csv_return
+        # Return the appropriate error condition after max_retries
+        if "error" in pcp2json_status:
+            return (pcp2json_status, pcp2json_return)
+        if "error" in pcp2csv_status:
+            return (pcp2csv_status, pcp2csv_return)
 
-            # Since the above for loop should always return either success or error,
-            # and should never come to its natural end, if we get here, something
-            # unexpected went wrong.
-            return "error", Error(
-                "Unknown failure attempting to process pmlogger output"
-            )
+        # Since the above for loop should always return either success or error,
+        # and should never come to its natural end, if we get here, something
+        # unexpected went wrong.
+        return "error", Error(
+            "Unexpected failure attempting to process pmlogger output"
+        )
 
 
 if __name__ == "__main__":
