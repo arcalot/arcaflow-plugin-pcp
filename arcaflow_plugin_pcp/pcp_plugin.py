@@ -161,7 +161,7 @@ class StartPcpStep:
 @plugin.step(
     id="post-process",
     name="Post-Process PCP Archive",
-    description="Processes and existing PCP archive into a machine-readable format",
+    description="Processes an existing PCP archive into a machine-readable format",
     outputs={"success": PerfOutput, "error": Error},
 )
 def post_process(
