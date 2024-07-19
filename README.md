@@ -3,11 +3,10 @@
 This plugin runs PCP pmlogger, collects data until cancelled,
 and then generates a structured output of the results.
 
-***Note:** This plugin runs indefinitely until explicitly cancelled.
-When used as a stand-alone plugin, the data collection can be stopped
-with `Ctrl-c`. When used in an Arcaflow workflow, the `stop_if`
-option should be used to send the `cancel` signal to the plugin based
-on the status of another plugin.*
+> [NOTE] This plugin runs indefinitely until explicitly cancelled. When used as a
+> stand-alone plugin, the data collection can be stopped with `Ctrl-c`. When used in an
+> Arcaflow workflow, the `stop_if` option should be used to send the `cancel` signal to
+> the plugin based on the status of another plugin.
 
 Workflow example snippet with `stop_if`:
 ```yaml
@@ -24,32 +23,52 @@ steps:
 ```
 
 ## Using the plugin
-Build the container:
+
+Get a maintained build from
+[quay.io/arcalot/arcaflow-plugin-pcp](https://quay.io/repository/arcalot/arcaflow-plugin-pcp),
+or build the container locally:
 ```
 docker build . -t arcaflow-plugin-pcp
 ```
 
 Run with the provided example input:
 ```
-cat configs/pcp_example.yaml | docker run -i --rm arcaflow-plugin-pcp -f -
+podman run -i --rm arcaflow-plugin-pcp -s start-pcp -f - < configs/pcp_example.yaml
 ```
 
-***Note:** This plugin is designed to be used as a container image built with
-the provided Dockerfile. Using the python directly on a target system will
-likely prove problematic*
+> [NOTE] This plugin is designed to be used as a container image built with the provided
+> Dockerfile. Using the python directly on a target system will likely prove
+> problematic
+
+### Post-Processing Only
+
+The `post-process` plugin step can be run independently to convert an existing PCP
+archive file into the same structured format that the main `start-pcp` plugin step
+provides. You will need to provde the path to the existing archive file as the
+`archive_path` input to the `post-process` step. When the plugin is run in a container,
+you will need to bind-mount the archive file path to the container so that the path is
+available for processing, and the `archive_path` will be in the context of the container
+namespace. For example:
+
+```
+podman run -i --rm -v /example/local_pcp_archive/:/pcp_archive/:Z \
+arcaflow-plugin-pcp -s post-process -f - << EOF
+archive_path: /pcp_archive/pmlogger-out
+EOF
+```
 
 ## Container Privileged Mode
 
-Note that some metrics collected by PCP are in fact at the host system level
+Note that some metrics collected by PCP are at the host system level
 even when running in a non-privileged container, but many metrics are
 namespace-scoped. In order to collect all metrics at the host level, you will
 need to run the containerized plugin in privileged mode with host networking.
 
 ## Power User Configurations
 
-***Please exercise caution in using the configuration options noted here.
-There is no input validation for the custom configurations, and malformed
-entries will lead to a plugin failure, possibly late in the run.***
+> [WARNING] Please exercise caution in using the configuration options noted here. There
+> is no input validation for the custom configurations, and malformed entries will lead
+> to a plugin failure, possibly late in the run.
 
 ### pmlogger config files
 Under normal operation, the plugin generates for itself a default configuration

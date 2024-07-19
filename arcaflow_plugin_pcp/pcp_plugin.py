@@ -52,8 +52,11 @@ class StartPcpStep:
 
     @plugin.step_with_signals(
         id="start-pcp",
-        name="Start PCP",
-        description="Start the PCP data logging tools",
+        name="Run PCP",
+        description=(
+            "Runs the PCP data collection and then processes the results into a "
+            "machine-readable format"
+        ),
         outputs={"success": PerfOutput, "error": Error},
         signal_handler_method_names=["cancel_step"],
         signal_emitters=[],
@@ -158,7 +161,7 @@ class StartPcpStep:
 @plugin.step(
     id="post-process",
     name="Post-Process PCP Archive",
-    description="Convert the PCP archive to machine-readable format",
+    description="Processes and existing PCP archive into a machine-readable format",
     outputs={"success": PerfOutput, "error": Error},
 )
 def post_process(
