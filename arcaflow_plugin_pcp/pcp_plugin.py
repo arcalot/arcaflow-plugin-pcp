@@ -12,7 +12,11 @@ import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
+    pcp_global_params_schema,
+    PcpGlobalParams,
     PcpInputParams,
+    post_process_params_schema,
+    PostProcessParams,
     PerfOutput,
     Error,
 )
@@ -141,102 +145,134 @@ class StartPcpStep:
                 "The pmlogger output file was not found; Unable to process results."
             )
 
-        pcp2_flags = [
-            "-a",
-            "pmlogger-out",
-            "-t",
-            str(params.pmlogger_interval),
-            "-f",
-            # pmrep doesn't accept %z for the timezone,
-            # so we'll get it explicitly via datetime
-            f"%FT%T.%f{str(datetime.now().astimezone())[-6:]}",
-            "-c",
-            pmrep_conf_path,
-            "-P",
-            "6",
+        post_process_params = {
+            "pmlogger_metrics": params.pmlogger_metrics,
+            "pmlogger_interval": params.pmlogger_interval,
+            "pmrep_conf": params.pmrep_conf,
+            "generate_csv": params.generate_csv,
+            "flatten": params.flatten,
+            "archive_path": ".",
+            "pmrep_conf_path": pmrep_conf_path,
+        }
+
+        # print(post_process_params)
+
+        return post_process(
+            params = post_process_params_schema.unserialize(post_process_params),
+            run_id="post-process",
+        )
+
+## WIP
+@plugin.step(
+    id="post-process",
+    name="Post-Process PCP Archive",
+    description="Convert the PCP archive to machine-readable format",
+    outputs={"success": PerfOutput, "error": Error},
+)
+def post_process(
+    params: PostProcessParams,
+) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+
+    # Parse metrics from input
+    metrics = params.pmlogger_metrics.split()
+
+    pcp2_flags = [
+        "-a",
+        # "pmlogger-out",
+        params.archive_path,
+        "-t",
+        str(params.pmlogger_interval),
+        "-f",
+        # pmrep doesn't accept %z for the timezone,
+        # so we'll get it explicitly via datetime
+        f"%FT%T.%f{str(datetime.now().astimezone())[-6:]}",
+        "-c",
+        params.pmrep_conf_path,
+        "-P",
+        "6",
+    ]
+
+    # Initialized pcp2json command
+    pcp2json_cmd = [
+        "/usr/bin/pcp2json",
+        "-E",
+    ]
+
+    pcp2json_cmd.extend(pcp2_flags)
+
+    # The list of metrics to collect is appended to the pcp2json command
+    pcp2json_cmd.extend(metrics)
+
+    print(f"Reporting metrics for: {params.pmlogger_metrics}")
+
+    if params.flatten or params.generate_csv:
+        # Initialize (optional) pcp2csv command
+        pcp2csv_cmd = [
+            "/usr/bin/pcp2csv",
+            "-l",
+            ",",
         ]
 
-        # Initialized pcp2json command
-        pcp2json_cmd = [
-            "/usr/bin/pcp2json",
-            "-E",
-        ]
+        pcp2csv_cmd.extend(pcp2_flags)
+        pcp2csv_cmd.extend(metrics)
 
-        pcp2json_cmd.extend(pcp2_flags)
-
-        # The list of metrics to collect is appended to the pcp2json command
-        pcp2json_cmd.extend(metrics)
-
-        print(f"Reporting metrics for: {params.pmlogger_metrics}")
-
+    max_retries = 1
+    pcp2csv_status = ""
+    pcp2json_status = ""
+    # Here we give max_retries chances to run the pcp2json conversion.
+    # This covers the situation where pmlogger is cancelled before a
+    # params.pmlogger_interval time has passed, which can cause pcp2json
+    # to fail.
+    for _attempt in range(max_retries):
         if params.flatten or params.generate_csv:
-            # Initialize (optional) pcp2csv command
-            pcp2csv_cmd = [
-                "/usr/bin/pcp2csv",
-                "-l",
-                ",",
-            ]
-
-            pcp2csv_cmd.extend(pcp2_flags)
-            pcp2csv_cmd.extend(metrics)
-
-        max_retries = 1
-        pcp2csv_status = ""
-        pcp2json_status = ""
-        # Here we give max_retries chances to run the pcp2json conversion.
-        # This covers the situation where pmlogger is cancelled before a
-        # params.pmlogger_interval time has passed, which can cause pcp2json
-        # to fail.
-        for _attempt in range(max_retries):
-            if params.flatten or params.generate_csv:
-                pcp2csv_status, pcp2csv_return = run_oneshot_cmd(pcp2csv_cmd)
-                if "error" in pcp2csv_status:
-                    if params.flatten:
-                        # If the pcp2csv command fails, we first attempt to retry.
-                        print(
-                            f"{pcp2csv_return} "
-                            f"Retrying in {params.pmlogger_interval} seconds...\n"
-                        )
-                        sleep(params.pmlogger_interval)
-                        continue
-                    print(pcp2csv_return + "; continuing")
-
-            if params.flatten:
-                reader = csv.DictReader(pcp2csv_return.splitlines())
-                pcp_metrics_list = list(reader)
-
-            else:
-                pcp2json_status, pcp2json_return = run_oneshot_cmd(pcp2json_cmd)
-                if "error" in pcp2json_status:
-                    # If the pcp2json command fails, we first attempt to retry.
+            pcp2csv_status, pcp2csv_return = run_oneshot_cmd(pcp2csv_cmd)
+            if "error" in pcp2csv_status:
+                if params.flatten:
+                    # If the pcp2csv command fails, we first attempt to retry.
                     print(
-                        f"{pcp2json_return} "
+                        f"{pcp2csv_return} "
                         f"Retrying in {params.pmlogger_interval} seconds...\n"
                     )
                     sleep(params.pmlogger_interval)
                     continue
-                pcp_out_json = json.loads(pcp2json_return.strip().split("\n", 2)[2])
-                pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
+                print(pcp2csv_return + "; continuing")
 
-            if params.generate_csv:
-                # Send the CSV format to stdout, if requested
-                print(pcp2csv_return)
+        if params.flatten:
+            reader = csv.DictReader(pcp2csv_return.splitlines())
+            pcp_metrics_list = list(reader)
 
-            # If pcp2json or pcp2csv completes without an exception, we return success.
-            return "success", PerfOutput(pcp_metrics_list)
+        else:
+            pcp2json_status, pcp2json_return = run_oneshot_cmd(pcp2json_cmd)
+            if "error" in pcp2json_status:
+                # If the pcp2json command fails, we first attempt to retry.
+                print(
+                    f"{pcp2json_return} "
+                    f"Retrying in {params.pmlogger_interval} seconds...\n"
+                )
+                sleep(params.pmlogger_interval)
+                continue
+            pcp_out_json = json.loads(pcp2json_return.strip().split("\n", 2)[2])
+            pcp_metrics_list = pcp_out_json["@pcp"]["@hosts"][0]["@metrics"]
 
-        # Return the appropriate error condition after max_retries
-        if "error" in pcp2json_status:
-            return (pcp2json_status, pcp2json_return)
-        if "error" in pcp2csv_status:
-            return (pcp2csv_status, pcp2csv_return)
+        if params.generate_csv:
+            # Send the CSV format to stdout, if requested
+            print(pcp2csv_return)
 
-        # Since the above for loop should always return either success or error,
-        # and should never come to its natural end, if we get here, something
-        # unexpected went wrong.
-        return "error", Error(
-            "Unexpected failure attempting to process pmlogger output"
-        )
+        # If pcp2json or pcp2csv completes without an exception, we return success.
+        return "success", PerfOutput(pcp_metrics_list)
+
+    # Return the appropriate error condition after max_retries
+    if "error" in pcp2json_status:
+        return (pcp2json_status, pcp2json_return)
+    if "error" in pcp2csv_status:
+        return (pcp2csv_status, pcp2csv_return)
+
+    # Since the above for loop should always return either success or error,
+    # and should never come to its natural end, if we get here, something
+    # unexpected went wrong.
+    return "error", Error(
+        "Unexpected failure attempting to process pmlogger output"
+    )
 
 
 if __name__ == "__main__":
@@ -244,6 +280,7 @@ if __name__ == "__main__":
         plugin.run(
             plugin.build_schema(
                 StartPcpStep.start_pcp,
+                post_process,
             )
         )
     )

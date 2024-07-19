@@ -10,7 +10,7 @@ validation_warning = (
 
 
 @dataclass
-class PcpInputParams:
+class PcpGlobalParams:
     pmlogger_metrics: typing.Annotated[
         typing.Optional[str],
         schema.name("pmlogger metrics to report"),
@@ -28,22 +28,6 @@ class PcpInputParams:
             " for data collection"
         ),
     ] = 1.0
-    timeout: typing.Annotated[
-        typing.Optional[int],
-        schema.name("pmlogger timeout seconds"),
-        schema.description(
-            "Timeout in seconds after which to cancel the pmlogger collection"
-        ),
-    ] = None
-    pmlogger_conf: typing.Annotated[
-        typing.Optional[str],
-        schema.name("pmlogger configuration file"),
-        schema.description(
-            "Complete configuration file content for pmlogger as a multi-line string."
-            " If no config file is provided, a default one will be generated."
-            + validation_warning
-        ),
-    ] = None
     pmrep_conf: typing.Annotated[
         typing.Optional[str],
         schema.name("pmrep configuration file"),
@@ -72,6 +56,52 @@ class PcpInputParams:
             "to a service like Elasticsearch."
         ),
     ] = False
+
+pcp_global_params_schema = plugin.build_object_schema(PcpGlobalParams)
+
+
+@dataclass
+class PcpInputParams(PcpGlobalParams):
+    timeout: typing.Annotated[
+        typing.Optional[int],
+        schema.name("pmlogger timeout seconds"),
+        schema.description(
+            "Timeout in seconds after which to cancel the pmlogger collection"
+        ),
+    ] = None
+    pmlogger_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmlogger configuration file"),
+        schema.description(
+            "Complete configuration file content for pmlogger as a multi-line string."
+            " If no config file is provided, a default one will be generated."
+            + validation_warning
+        ),
+    ] = None
+
+@dataclass
+class PostProcessParams(PcpGlobalParams):
+    archive_path: typing.Annotated[
+        str,
+        # TODO add validation
+        schema.name("archive file path"),
+        schema.description(
+            "The file system path to the PCP archive file. The path should include the "
+            "name of the archive without a file extension."
+        )
+    ] = "."
+    pmrep_conf_path: typing.Annotated[
+        str,
+        # TODO add validation
+        schema.name("pmrep config file path"),
+        schema.description(
+            "The file system path to the pmrep config file."
+        )
+    ] = "/etc/pcp/pmrep"
+
+post_process_params_schema = plugin.build_object_schema(PostProcessParams)
+
+
 
 
 @dataclass
