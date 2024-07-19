@@ -12,10 +12,10 @@ import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
-    pcp_global_params_schema,
-    PcpGlobalParams,
+    # pcp_global_params_schema,
+    # PcpGlobalParams,
     PcpInputParams,
-    post_process_params_schema,
+    # post_process_params_schema,
     PostProcessParams,
     PerfOutput,
     Error,
