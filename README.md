@@ -29,7 +29,7 @@ Get a maintained build from
 [quay.io/arcalot/arcaflow-plugin-pcp](https://quay.io/repository/arcalot/arcaflow-plugin-pcp),
 or build the container locally:
 ```
-docker build . -t arcaflow-plugin-pcp
+podman build . -t arcaflow-plugin-pcp
 ```
 
 Run with the provided example input:
