@@ -1,6 +1,7 @@
 import typing
+import re
 from dataclasses import dataclass
-from arcaflow_plugin_sdk import plugin, schema
+from arcaflow_plugin_sdk import plugin, schema, validation
 
 validation_warning = (
     " NOTE: Input not validated by the plugin --"
@@ -80,12 +81,12 @@ class PcpInputParams(PcpGlobalParams):
         ),
     ] = None
 
-
+file_path_pattern = re.compile(r"((?:[^\/]*\/)*)(.*)")
 @dataclass
 class PostProcessParams(PcpGlobalParams):
     archive_path: typing.Annotated[
         str,
-        # TODO add validation
+        validation.pattern(file_path_pattern),
         schema.name("archive file path"),
         schema.description(
             "The file system path to the PCP archive file. The path should include the "
@@ -94,7 +95,7 @@ class PostProcessParams(PcpGlobalParams):
     ] = "."
     pmrep_conf_path: typing.Annotated[
         str,
-        # TODO add validation
+        validation.pattern(file_path_pattern),
         schema.name("pmrep config file path"),
         schema.description("The file system path to the pmrep config file."),
     ] = "/etc/pcp/pmrep"
