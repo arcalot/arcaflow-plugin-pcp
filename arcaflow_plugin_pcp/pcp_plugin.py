@@ -15,7 +15,7 @@ from pcp_schema import (
     # pcp_global_params_schema,
     # PcpGlobalParams,
     PcpInputParams,
-    # post_process_params_schema,
+    post_process_params_schema,
     PostProcessParams,
     PerfOutput,
     Error,
@@ -65,8 +65,6 @@ class StartPcpStep:
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
-        # Parse metrics from input
-        metrics = params.pmlogger_metrics.split()
 
         # Start the PCMD daemon
         pcmd_cmd = [
@@ -163,7 +161,7 @@ class StartPcpStep:
         )
 
 
-## WIP
+# WIP
 @plugin.step(
     id="post-process",
     name="Post-Process PCP Archive",
