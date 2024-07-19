@@ -149,7 +149,6 @@ class StartPcpStep:
             "archive_path": ".",
         }
 
-        # Always run the post-process step
         return post_process(
             params=post_process_params_schema.unserialize(post_process_params),
             run_id="post-process",

@@ -15,6 +15,18 @@ class PCPTest(unittest.TestCase):
                 pmlogger_interval=1.0,
                 timeout=5,
                 pmlogger_metrics="mem.util.used",
+                pmrep_conf_path="/example",
+            )
+        )
+
+        plugin.test_object_serialization(
+            pcp_plugin.PostProcessParams(
+                pmlogger_interval=0.5,
+                pmlogger_metrics=":sar-B",
+                pmrep_conf_path="/EXAMPLE",
+                generate_csv=False,
+                flatten=True,
+                archive_path="./example.com",
             )
         )
 
@@ -112,7 +124,7 @@ class PCPTest(unittest.TestCase):
 
         plugin.test_object_serialization(pcp_plugin.Error(error="This is an error"))
 
-    def test_functional(self):
+    def test_functional_full(self):
         tests = [
             {
                 # Standard
@@ -144,14 +156,26 @@ class PCPTest(unittest.TestCase):
                     params=input, run_id="ci_pcp"
                 )
 
-                print(f"==>> output_id is {output_id}")
-                print(f"==>> output_data is {output_data}")
-
                 self.assertEqual("success", output_id)
                 plugin.test_object_serialization(
                     pcp_plugin.PerfOutput(output_data.pcp_output),
                     fail=lambda _: self.fail("Output failed schema validation"),
                 )
+
+    def test_functional_post(self):
+        input = pcp_plugin.PostProcessParams(
+            pmlogger_interval=1.0,
+            pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+            flatten=True,
+            archive_path="tests/pmlogger-out",
+        )
+
+        output_id, output_data = pcp_plugin.post_process(
+            params=input, run_id="ci_pcp_post"
+        )
+
+        self.assertEqual("success", output_id)
+        self.assertEqual(31787216, int(output_data.pcp_output[1]["mem.util.used"]))
 
 
 if __name__ == "__main__":
