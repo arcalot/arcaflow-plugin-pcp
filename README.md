@@ -3,10 +3,11 @@
 This plugin runs PCP pmlogger, collects data until cancelled,
 and then generates a structured output of the results.
 
-> [!NOTE] This plugin runs indefinitely until explicitly cancelled. When used as a
-> stand-alone plugin, the data collection can be stopped with `Ctrl-c`. When used in an
-> Arcaflow workflow, the `stop_if` option should be used to send the `cancel` signal to
-> the plugin based on the status of another plugin.
+> [!NOTE]
+> This plugin runs indefinitely until explicitly cancelled. When used as a stand-alone
+> plugin, the data collection can be stopped with `Ctrl-c`. When used in an Arcaflow
+> workflow, the `stop_if` option should be used to send the `cancel` signal to the
+> plugin based on the status of another plugin.
 
 Workflow example snippet with `stop_if`:
 ```yaml
@@ -36,9 +37,9 @@ Run with the provided example input:
 podman run -i --rm arcaflow-plugin-pcp -s start-pcp -f - < configs/pcp_example.yaml
 ```
 
-> [!NOTE] This plugin is designed to be used as a container image built with the provided
-> Dockerfile. Using the python directly on a target system will likely prove
-> problematic
+> [!NOTE]
+> This plugin is designed to be used as a container image built with the provided
+> Dockerfile. Using the python directly on a target system will likely prove problematic
 
 ### Post-Processing Only
 
@@ -66,9 +67,10 @@ need to run the containerized plugin in privileged mode with host networking.
 
 ## Power User Configurations
 
-> [!WARNING] Please exercise caution in using the configuration options noted here. There
-> is no input validation for the custom configurations, and malformed entries will lead
-> to a plugin failure, possibly late in the run.
+> [!WARNING]
+> Please exercise caution in using the configuration options noted here. There is no
+> input validation for the custom configurations, and malformed entries will lead to a
+> plugin failure, possibly late in the run.
 
 ### pmlogger config files
 Under normal operation, the plugin generates for itself a default configuration
