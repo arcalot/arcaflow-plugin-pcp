@@ -152,7 +152,7 @@ class PCPTest(unittest.TestCase):
                     **test,
                 )
 
-                output_id, output_data = pcp_plugin.StartPcpStep.start_pcp(
+                output_id, output_data = pcp_plugin.StartPcpStep.run_pcp(
                     params=input, run_id="ci_pcp"
                 )
 

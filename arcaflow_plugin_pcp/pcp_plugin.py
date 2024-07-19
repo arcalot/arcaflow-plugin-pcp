@@ -51,7 +51,7 @@ class StartPcpStep:
         self.exit.set()
 
     @plugin.step_with_signals(
-        id="start-pcp",
+        id="run-pcp",
         name="Run PCP",
         description=(
             "Runs the PCP data collection and then processes the results into a "
@@ -62,7 +62,7 @@ class StartPcpStep:
         signal_emitters=[],
         step_object_constructor=lambda: StartPcpStep(),
     )
-    def start_pcp(
+    def run_pcp(
         self,
         params: PcpInputParams,
     ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     sys.exit(
         plugin.run(
             plugin.build_schema(
-                StartPcpStep.start_pcp,
+                StartPcpStep.run_pcp,
                 post_process,
             )
         )

@@ -9,7 +9,7 @@ validation_warning = (
     " may result in workflow failures."
 )
 
-file_path_pattern = re.compile(r"((?:[^\/]*\/)*)(.*)")
+file_path_pattern = re.compile(r"((?:[^/]*/)*)([^/]+)")
 
 
 @dataclass
@@ -110,9 +110,6 @@ class PerfOutput:
         schema.name("PCP output list"),
         schema.description("List of of performance data in intervals from PCP"),
     ]
-
-
-perf_output_schema = plugin.build_object_schema(PerfOutput)
 
 
 @dataclass

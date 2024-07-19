@@ -5,16 +5,16 @@ and then generates a structured output of the results.
 
 > [!NOTE]
 > This plugin runs indefinitely until explicitly cancelled. When used as a stand-alone
-> plugin, the data collection can be stopped with `Ctrl-c`. When used in an Arcaflow
-> workflow, the `stop_if` option should be used to send the `cancel` signal to the
-> plugin based on the status of another plugin.
+> plugin outside of an Arcaflow workflow, the data collection can be stopped with
+> `Ctrl-c`. When used in an Arcaflow workflow, the `stop_if` option should be used to
+> send the `cancel` signal to the plugin based on the status of another plugin.
 
 Workflow example snippet with `stop_if`:
 ```yaml
 steps:
   pcp:
     plugin: quay.io/arcalot/arcaflow-plugin-pcp:latest
-    step: start-pcp
+    step: run-pcp
     input: !expr $.input.pcp_params
     stop_if: !expr $.steps.sysbench.outputs
   sysbench:
@@ -34,7 +34,7 @@ podman build . -t arcaflow-plugin-pcp
 
 Run with the provided example input:
 ```
-podman run -i --rm arcaflow-plugin-pcp -s start-pcp -f - < configs/pcp_example.yaml
+podman run -i --rm arcaflow-plugin-pcp -s run-pcp -f - < configs/pcp_example.yaml
 ```
 
 > [!NOTE]
@@ -44,18 +44,16 @@ podman run -i --rm arcaflow-plugin-pcp -s start-pcp -f - < configs/pcp_example.y
 ### Post-Processing Only
 
 The `post-process` plugin step can be run independently to convert an existing PCP
-archive file into the same structured format that the main `start-pcp` plugin step
-provides. You will need to provde the path to the existing archive file as the
-`archive_path` input to the `post-process` step. When the plugin is run in a container,
-you will need to bind-mount the archive file path to the container so that the path is
-available for processing, and the `archive_path` will be in the context of the container
-namespace. For example:
+archive file into the same structured format that the main `run-pcp` plugin step
+provides. In order to make the archive file available to the plugin when it is run in a
+container, you will need to bind-mount the archive file path to the container and
+specify the `archive_path` in the context of the container namespace. For example, to
+post-process an archive in `/example/local_pcp_archive/pmlogger-out` use the following
+command:
 
 ```
 podman run -i --rm -v /example/local_pcp_archive/:/pcp_archive/:Z \
-arcaflow-plugin-pcp -s post-process -f - << EOF
-archive_path: /pcp_archive/pmlogger-out
-EOF
+arcaflow-plugin-pcp -s post-process -f - <<< "archive_path: /pcp_archive/pmlogger-out"
 ```
 
 ## Container Privileged Mode
@@ -183,7 +181,7 @@ Processes an existing PCP archive into a machine-readable format
 
 
 
-## Run PCP (`start-pcp`)
+## Run PCP (`run-pcp`)
 
 Runs the PCP data collection and then processes the results into a machine-readable format
 
