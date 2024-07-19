@@ -57,6 +57,7 @@ class PcpGlobalParams:
         ),
     ] = False
 
+
 pcp_global_params_schema = plugin.build_object_schema(PcpGlobalParams)
 
 
@@ -79,6 +80,7 @@ class PcpInputParams(PcpGlobalParams):
         ),
     ] = None
 
+
 @dataclass
 class PostProcessParams(PcpGlobalParams):
     archive_path: typing.Annotated[
@@ -88,20 +90,17 @@ class PostProcessParams(PcpGlobalParams):
         schema.description(
             "The file system path to the PCP archive file. The path should include the "
             "name of the archive without a file extension."
-        )
+        ),
     ] = "."
     pmrep_conf_path: typing.Annotated[
         str,
         # TODO add validation
         schema.name("pmrep config file path"),
-        schema.description(
-            "The file system path to the pmrep config file."
-        )
+        schema.description("The file system path to the pmrep config file."),
     ] = "/etc/pcp/pmrep"
 
+
 post_process_params_schema = plugin.build_object_schema(PostProcessParams)
-
-
 
 
 @dataclass

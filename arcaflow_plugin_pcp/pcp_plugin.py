@@ -158,9 +158,10 @@ class StartPcpStep:
         # print(post_process_params)
 
         return post_process(
-            params = post_process_params_schema.unserialize(post_process_params),
+            params=post_process_params_schema.unserialize(post_process_params),
             run_id="post-process",
         )
+
 
 ## WIP
 @plugin.step(
@@ -270,9 +271,7 @@ def post_process(
     # Since the above for loop should always return either success or error,
     # and should never come to its natural end, if we get here, something
     # unexpected went wrong.
-    return "error", Error(
-        "Unexpected failure attempting to process pmlogger output"
-    )
+    return "error", Error("Unexpected failure attempting to process pmlogger output")
 
 
 if __name__ == "__main__":
