@@ -12,8 +12,6 @@ import typing
 from threading import Event
 from arcaflow_plugin_sdk import plugin, predefined_schemas
 from pcp_schema import (
-    # pcp_global_params_schema,
-    # PcpGlobalParams,
     PcpInputParams,
     post_process_params_schema,
     PostProcessParams,
@@ -93,14 +91,13 @@ class StartPcpStep:
                 return pmlogconf_return
 
         # Create the pmrep.conf file from the user-provided contents or
-        # point to the default system configuration directory
+        # point to the system configuration directory
         if params.pmrep_conf:
-            pmrep_conf_path = "pmrep.conf"
+            params.pmrep_conf_path = "pmrep.conf"
             print("Using provided pmrep configuration file")
-            Path(pmrep_conf_path).write_text(params.pmrep_conf)
+            Path(params.pmrep_conf_path).write_text(params.pmrep_conf)
         else:
-            pmrep_conf_path = "/etc/pcp/pmrep"
-            print(f"Using default {pmrep_conf_path} configuration directory")
+            print(f"Using default {params.pmrep_conf_path} configuration directory")
 
         # Start pmlogger to collect metrics
         pmlogger_cmd = [
@@ -146,22 +143,19 @@ class StartPcpStep:
         post_process_params = {
             "pmlogger_metrics": params.pmlogger_metrics,
             "pmlogger_interval": params.pmlogger_interval,
-            "pmrep_conf": params.pmrep_conf,
+            "pmrep_conf_path": params.pmrep_conf_path,
             "generate_csv": params.generate_csv,
             "flatten": params.flatten,
             "archive_path": ".",
-            "pmrep_conf_path": pmrep_conf_path,
         }
 
-        # print(post_process_params)
-
+        # Always run the post-process step
         return post_process(
             params=post_process_params_schema.unserialize(post_process_params),
             run_id="post-process",
         )
 
 
-# WIP
 @plugin.step(
     id="post-process",
     name="Post-Process PCP Archive",
@@ -177,7 +171,6 @@ def post_process(
 
     pcp2_flags = [
         "-a",
-        # "pmlogger-out",
         params.archive_path,
         "-t",
         str(params.pmlogger_interval),

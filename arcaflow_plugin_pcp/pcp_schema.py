@@ -9,6 +9,8 @@ validation_warning = (
     " may result in workflow failures."
 )
 
+file_path_pattern = re.compile(r"((?:[^\/]*\/)*)(.*)")
+
 
 @dataclass
 class PcpGlobalParams:
@@ -29,16 +31,12 @@ class PcpGlobalParams:
             " for data collection"
         ),
     ] = 1.0
-    pmrep_conf: typing.Annotated[
+    pmrep_conf_path: typing.Annotated[
         typing.Optional[str],
-        schema.name("pmrep configuration file"),
-        schema.description(
-            "Complete configuration file content for pmrep as a multi-line string."
-            " If no config file is provided, a default one will be used."
-            " This configuration is used internally for `pcp2json` and `pcp2csv`."
-            + validation_warning
-        ),
-    ] = None
+        validation.pattern(file_path_pattern),
+        schema.name("pmrep config file path"),
+        schema.description("The file system path to the pmrep config file."),
+    ] = "/etc/pcp/pmrep"
     generate_csv: typing.Annotated[
         typing.Optional[bool],
         schema.name("generate CSV output"),
@@ -59,9 +57,6 @@ class PcpGlobalParams:
     ] = False
 
 
-pcp_global_params_schema = plugin.build_object_schema(PcpGlobalParams)
-
-
 @dataclass
 class PcpInputParams(PcpGlobalParams):
     timeout: typing.Annotated[
@@ -80,8 +75,18 @@ class PcpInputParams(PcpGlobalParams):
             + validation_warning
         ),
     ] = None
+    pmrep_conf: typing.Annotated[
+        typing.Optional[str],
+        schema.name("pmrep configuration file"),
+        schema.description(
+            "Complete configuration file content for pmrep as a multi-line string."
+            " If no config file is provided, a default one will be used."
+            " This configuration is used internally for `pcp2json` and `pcp2csv`."
+            + validation_warning
+        ),
+    ] = None
 
-file_path_pattern = re.compile(r"((?:[^\/]*\/)*)(.*)")
+
 @dataclass
 class PostProcessParams(PcpGlobalParams):
     archive_path: typing.Annotated[
@@ -93,12 +98,6 @@ class PostProcessParams(PcpGlobalParams):
             "name of the archive without a file extension."
         ),
     ] = "."
-    pmrep_conf_path: typing.Annotated[
-        str,
-        validation.pattern(file_path_pattern),
-        schema.name("pmrep config file path"),
-        schema.description("The file system path to the pmrep config file."),
-    ] = "/etc/pcp/pmrep"
 
 
 post_process_params_schema = plugin.build_object_schema(PostProcessParams)
