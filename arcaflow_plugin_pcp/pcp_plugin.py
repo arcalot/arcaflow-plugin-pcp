@@ -210,14 +210,14 @@ def post_process(
         pcp2csv_cmd.extend(pcp2_flags)
         pcp2csv_cmd.extend(metrics)
 
-    max_retries = 1
+    retry_limit = 2
     pcp2csv_status = ""
     pcp2json_status = ""
-    # Here we give max_retries chances to run the pcp2json conversion.
+    # Here we give an additional chance to run the pcp2json conversion.
     # This covers the situation where pmlogger is cancelled before a
     # params.pmlogger_interval time has passed, which can cause pcp2json
     # to fail.
-    for _attempt in range(max_retries):
+    for _attempt in range(retry_limit):
         if params.flatten or params.generate_csv:
             pcp2csv_status, pcp2csv_return = run_oneshot_cmd(pcp2csv_cmd)
             if "error" in pcp2csv_status:

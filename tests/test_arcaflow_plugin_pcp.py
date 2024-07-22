@@ -162,6 +162,21 @@ class PCPTest(unittest.TestCase):
                     fail=lambda _: self.fail("Output failed schema validation"),
                 )
 
+    def test_functional_fast_stop(self):
+        input = pcp_plugin.PcpInputParams(
+            pmlogger_interval=5.0,
+                    pmlogger_metrics="kernel.all.cpu.user mem.util.used",
+                    timeout=1,
+        )
+
+        output_id, output_data = pcp_plugin.StartPcpStep.run_pcp(
+            params=input, run_id="ci_pcp_fast_stop"
+        )
+
+        self.assertEqual("success", output_id)
+        print(output_data)
+
+
     def test_functional_post(self):
         input = pcp_plugin.PostProcessParams(
             pmlogger_interval=1.0,
@@ -176,7 +191,6 @@ class PCPTest(unittest.TestCase):
 
         self.assertEqual("success", output_id)
         self.assertEqual(31787216, int(output_data.pcp_output[1]["mem.util.used"]))
-
 
 if __name__ == "__main__":
     unittest.main()
