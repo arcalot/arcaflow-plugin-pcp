@@ -9,7 +9,7 @@ validation_warning = (
     " may result in workflow failures."
 )
 
-file_path_pattern = re.compile(r"((?:[^/]*/)*)([^/]+)")
+file_path_pattern = re.compile(r"((?:[^/]*/)*)[^/]")
 
 
 @dataclass
