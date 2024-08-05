@@ -1,6 +1,7 @@
 import typing
+import re
 from dataclasses import dataclass
-from arcaflow_plugin_sdk import plugin, schema
+from arcaflow_plugin_sdk import plugin, schema, validation
 
 validation_warning = (
     " NOTE: Input not validated by the plugin --"
@@ -8,9 +9,11 @@ validation_warning = (
     " may result in workflow failures."
 )
 
+file_path_pattern = re.compile(r"((?:[^/]*/)*)[^/]")
+
 
 @dataclass
-class PcpInputParams:
+class PcpGlobalParams:
     pmlogger_metrics: typing.Annotated[
         typing.Optional[str],
         schema.name("pmlogger metrics to report"),
@@ -28,6 +31,34 @@ class PcpInputParams:
             " for data collection"
         ),
     ] = 1.0
+    pmrep_conf_path: typing.Annotated[
+        typing.Optional[str],
+        validation.pattern(file_path_pattern),
+        schema.name("pmrep config file path"),
+        schema.description("The file system path to the pmrep config file."),
+    ] = "/etc/pcp/pmrep"
+    generate_csv: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("generate CSV output"),
+        schema.description(
+            "Generates the data payload also in CSV format. This output goes to "
+            "the debug_logs, or to stderr if the --debug flag is used."
+        ),
+    ] = False
+    flatten: typing.Annotated[
+        typing.Optional[bool],
+        schema.name("flatten JSON structure"),
+        schema.description(
+            "Processes the metrics first into a two-dimensional format via the "
+            "pcp2csv converter, and then converts the CSV to JSON, effectively "
+            "flattening the data structure. This is useful when indexing metrics "
+            "to a service like Elasticsearch."
+        ),
+    ] = False
+
+
+@dataclass
+class PcpInputParams(PcpGlobalParams):
     timeout: typing.Annotated[
         typing.Optional[int],
         schema.name("pmlogger timeout seconds"),
@@ -54,24 +85,22 @@ class PcpInputParams:
             + validation_warning
         ),
     ] = None
-    generate_csv: typing.Annotated[
-        typing.Optional[bool],
-        schema.name("generate CSV output"),
+
+
+@dataclass
+class PostProcessParams(PcpGlobalParams):
+    archive_path: typing.Annotated[
+        str,
+        validation.pattern(file_path_pattern),
+        schema.name("archive file path"),
         schema.description(
-            "Generates the data payload also in CSV format. This output goes to "
-            "the debug_logs, or to stderr if the --debug flag is used."
+            "The file system path to the PCP archive file. The path should include the "
+            "name of the archive without a file extension."
         ),
-    ] = False
-    flatten: typing.Annotated[
-        typing.Optional[bool],
-        schema.name("flatten JSON structure"),
-        schema.description(
-            "Processes the metrics first into a two-dimensional format via the "
-            "pcp2csv converter, and then converts the CSV to JSON, effectively "
-            "flattening the data structure. This is useful when indexing metrics "
-            "to a service like Elasticsearch."
-        ),
-    ] = False
+    ] = "."
+
+
+post_process_params_schema = plugin.build_object_schema(PostProcessParams)
 
 
 @dataclass
@@ -81,9 +110,6 @@ class PerfOutput:
         schema.name("PCP output list"),
         schema.description("List of of performance data in intervals from PCP"),
     ]
-
-
-perf_output_schema = plugin.build_object_schema(PerfOutput)
 
 
 @dataclass
