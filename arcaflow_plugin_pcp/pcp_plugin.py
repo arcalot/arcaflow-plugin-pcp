@@ -99,14 +99,10 @@ class StartPcpStep:
         # with tempfile.TemporaryDirectory() as tmp_pcp:
         # Create the pmrep.conf file from the user-provided contents or
         # point to the system configuration directory
-        # tmp_pcp = Path(tempfile.gettempdir(), "pcp_plugin")
         tmp_pcp = Path(tempfile.mkdtemp(), "pcp_plugin")
-        # print(tmp_pcp.iterdir())
         pmrep_path = Path(params.pmrep_conf_path)
         pcp_path = pmrep_path.parent
         shutil.copytree(pcp_path, tmp_pcp)
-        # tmp_pmrep = Path(tempfile.gettempdir(), "pcp", "pmrep")
-        # pmrep_conf_temppath = Path(tempfile.gettempdir()  "pmrep.conf"
         pmrep_conf_tmppath = tmp_pcp.joinpath("pmrep", "pmrep.conf")
         plugin_pmrep_path = params.pmrep_conf_path
         if params.pmrep_conf:
