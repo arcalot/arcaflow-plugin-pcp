@@ -79,17 +79,20 @@ class StartPcpStep:
         if "error" in pcmd_return[0]:
             return pcmd_return
 
-        # pmlogger_cfg_path = Path(tempfile.gettempdir(), "pmlogger.conf")
+
+        pmlogger_cfg_path = Path(tempfile.mkdtemp(), "pmlogger.conf")
         # Create the pmlogger.conf file from the user-provided contents or
         # a default file with the generator command
         if params.pmlogger_conf:
             print("Using provided pmlogger configuration file")
-            Path("pmlogger.conf").write_text(params.pmlogger_conf)
+            # Path("pmlogger.conf").write_text(params.pmlogger_conf)
+            pmlogger_cfg_path.write_text(params.pmlogger_conf)
         else:
             print("Generating default pmlogger configuration file")
             pmlogconf_cmd = [
                 "/usr/bin/pmlogconf",
-                "pmlogger.conf",
+                # "pmlogger.conf",
+                str(pmlogger_cfg_path),
             ]
 
             pmlogconf_return = run_oneshot_cmd(pmlogconf_cmd)
@@ -115,13 +118,17 @@ class StartPcpStep:
             print(f"Using default {params.pmrep_conf_path} configuration directory")
 
         # Start pmlogger to collect metrics
+        archive_path = tempfile.mkdtemp()
+        pmlogger_outfile = Path(archive_path, "pmlogger-out")
         pmlogger_cmd = [
             "/usr/bin/pmlogger",
             "-c",
-            "pmlogger.conf",
+            # "pmlogger.conf",
+            str(pmlogger_cfg_path),
             "-t",
             str(params.pmlogger_interval),
-            "pmlogger-out",
+            # "pmlogger-out",
+            str(pmlogger_outfile),
         ]
 
         try:
@@ -145,8 +152,12 @@ class StartPcpStep:
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
 
         # Check the pmlogger output file
+        exp_pmlogger_filename = "pmlogger-out.0"
+        exp_pmlogger_path = Path(archive_path, exp_pmlogger_filename)
+        print(exp_pmlogger_path)
+        print(list(Path(archive_path).iterdir()))
         try:
-            if os.stat("pmlogger-out.0").st_size == 0:
+            if os.stat(str(exp_pmlogger_path)).st_size == 0:
                 return "error", Error(
                     "The pmlogger output file is empty; Unable to process results."
                 )
@@ -155,13 +166,15 @@ class StartPcpStep:
                 "The pmlogger output file was not found; Unable to process results."
             )
 
+        # archive_path = tempfile.mktemp()
         post_process_params = {
             "pmlogger_metrics": params.pmlogger_metrics,
             "pmlogger_interval": params.pmlogger_interval,
             "pmrep_conf_path": str(plugin_pmrep_path),
             "generate_csv": params.generate_csv,
             "flatten": params.flatten,
-            "archive_path": ".",
+            # "archive_path": ".",
+            "archive_path": archive_path,
         }
 
         return post_process(
