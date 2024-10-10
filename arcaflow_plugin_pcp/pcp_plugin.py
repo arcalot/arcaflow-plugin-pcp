@@ -2,9 +2,11 @@
 
 import json
 import csv
+import shutil
 import subprocess
 import sys
 import os
+import tempfile
 from pathlib import Path
 from time import sleep
 from datetime import datetime
@@ -77,6 +79,7 @@ class StartPcpStep:
         if "error" in pcmd_return[0]:
             return pcmd_return
 
+        # pmlogger_cfg_path = Path(tempfile.gettempdir(), "pmlogger.conf")
         # Create the pmlogger.conf file from the user-provided contents or
         # a default file with the generator command
         if params.pmlogger_conf:
@@ -93,12 +96,25 @@ class StartPcpStep:
             if "error" in pmlogconf_return[0]:
                 return pmlogconf_return
 
+        # with tempfile.TemporaryDirectory() as tmp_pcp:
         # Create the pmrep.conf file from the user-provided contents or
         # point to the system configuration directory
+        # tmp_pcp = Path(tempfile.gettempdir(), "pcp_plugin")
+        tmp_pcp = Path(tempfile.mkdtemp(), "pcp_plugin")
+        # print(tmp_pcp.iterdir())
+        pmrep_path = Path(params.pmrep_conf_path)
+        pcp_path = pmrep_path.parent
+        shutil.copytree(pcp_path, tmp_pcp)
+        # tmp_pmrep = Path(tempfile.gettempdir(), "pcp", "pmrep")
+        # pmrep_conf_temppath = Path(tempfile.gettempdir()  "pmrep.conf"
+        pmrep_conf_tmppath = tmp_pcp.joinpath("pmrep", "pmrep.conf")
+        plugin_pmrep_path = params.pmrep_conf_path
         if params.pmrep_conf:
             params.pmrep_conf_path = "pmrep.conf"
             print("Using provided pmrep configuration file")
-            Path(params.pmrep_conf_path).write_text(params.pmrep_conf)
+            # Path(params.pmrep_conf_path).write_text(params.pmrep_conf)
+            pmrep_conf_tmppath.write_text(params.pmrep_conf)
+            plugin_pmrep_path = pmrep_conf_tmppath
         else:
             print(f"Using default {params.pmrep_conf_path} configuration directory")
 
@@ -146,7 +162,7 @@ class StartPcpStep:
         post_process_params = {
             "pmlogger_metrics": params.pmlogger_metrics,
             "pmlogger_interval": params.pmlogger_interval,
-            "pmrep_conf_path": params.pmrep_conf_path,
+            "pmrep_conf_path": str(plugin_pmrep_path),
             "generate_csv": params.generate_csv,
             "flatten": params.flatten,
             "archive_path": ".",
