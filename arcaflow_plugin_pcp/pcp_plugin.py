@@ -99,7 +99,6 @@ class StartPcpStep:
             if "error" in pmlogconf_return[0]:
                 return pmlogconf_return
 
-        # with tempfile.TemporaryDirectory() as tmp_pcp:
         # Create the pmrep.conf file from the user-provided contents or
         # point to the system configuration directory
         tmp_pcp = Path(tempfile.mkdtemp(), "pcp_plugin")
