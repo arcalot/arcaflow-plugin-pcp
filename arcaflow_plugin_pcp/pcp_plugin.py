@@ -118,7 +118,8 @@ class StartPcpStep:
 
         # Start pmlogger to collect metrics
         archive_path = tempfile.mkdtemp()
-        pmlogger_outfile = Path(archive_path, "pmlogger-out")
+        pmlogger_archive_name = "pmlogger-out"
+        pmlogger_outfile = Path(archive_path, pmlogger_archive_name)
         pmlogger_cmd = [
             "/usr/bin/pmlogger",
             "-c",
@@ -151,7 +152,7 @@ class StartPcpStep:
             print("\nReceived keyboard interrupt; Stopping data collection.\n")
 
         # Check the pmlogger output file
-        exp_pmlogger_filename = "pmlogger-out.0"
+        exp_pmlogger_filename = pmlogger_archive_name + ".0"
         exp_pmlogger_path = Path(archive_path, exp_pmlogger_filename)
         print(exp_pmlogger_path)
         print(list(Path(archive_path).iterdir()))
@@ -165,7 +166,6 @@ class StartPcpStep:
                 "The pmlogger output file was not found; Unable to process results."
             )
 
-        # archive_path = tempfile.mktemp()
         post_process_params = {
             "pmlogger_metrics": params.pmlogger_metrics,
             "pmlogger_interval": params.pmlogger_interval,
