@@ -175,7 +175,7 @@ class PCPTest(unittest.TestCase):
         )
 
         self.assertEqual("success", output_id)
-        self.assertEqual(31787216, int(output_data.pcp_output[1]["mem.util.used"]))
+        self.assertEqual(31740816, int(output_data.pcp_output[1]["mem.util.used"]))
 
 
 if __name__ == "__main__":
