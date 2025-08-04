@@ -15,6 +15,8 @@ python = "^3.12"
 arcaflow-plugin-sdk = "^0.14.4"
 requests = "^2.31.0"
 
+[tool.poetry.dev-dependencies]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
