@@ -4,10 +4,13 @@ ARG package=arcaflow_plugin_pcp
 # STAGE 1 -- Build module dependencies and run tests
 # The 'poetry' and 'coverage' modules are installed and verson-controlled in the
 # quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase image to limit drift
-FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:0.4.2 as build
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-buildbase:0.5.0 AS build
 ARG package
-RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
-RUN useradd -U pcp
+RUN dnf -y install systemd pcp-devel \
+ && dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
+
+# Install pcp dependency to a version-agnostic directory
+RUN mkdir /pcp-dist && python -m pip install --target=/pcp-dist pcp
 
 COPY poetry.lock /app/
 COPY pyproject.toml /app/
@@ -19,7 +22,7 @@ RUN python -m poetry install --without dev --no-root \
 COPY ${package}/ /app/${package}
 COPY tests /app/${package}/tests
 
-ENV PYTHONPATH /app/${package}
+ENV PYTHONPATH /pcp-dist:/app/${package}
 
 WORKDIR /app/${package}
 
@@ -29,16 +32,22 @@ RUN python -m coverage run tests/test_${package}.py \
 
 
 # STAGE 2 -- Build final plugin image
-FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:0.4.2
+FROM quay.io/arcalot/arcaflow-plugin-baseimage-python-osbase:0.5.0
 ARG package
-RUN dnf -y install pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core
-RUN useradd -U pcp
+RUN dnf -y install systemd pcp pcp-export-pcp2json pcp-system-tools procps-ng util-linux-core \
+ && useradd -U pcp
+
+# Copy the pcp dependency from the build stage
+COPY --from=build /pcp-dist /pcp-dist
 
 COPY --from=build /app/requirements.txt /app/
 COPY --from=build /htmlcov /htmlcov/
 COPY LICENSE /app/
 COPY README.md /app/
 COPY ${package}/ /app/${package}
+
+# Add the custom pcp dependency path and the application path to PYTHONPATH
+ENV PYTHONPATH /pcp-dist:/app/${package}
 
 RUN python -m pip install -r requirements.txt
 
@@ -53,3 +62,4 @@ LABEL org.opencontainers.image.vendor="Arcalot project"
 LABEL org.opencontainers.image.authors="Arcalot contributors"
 LABEL org.opencontainers.image.title="Arcaflow Performance Copilot Plugin"
 LABEL io.github.arcalot.arcaflow.plugin.version="1"
+

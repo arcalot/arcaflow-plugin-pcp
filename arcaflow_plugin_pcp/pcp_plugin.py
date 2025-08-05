@@ -190,6 +190,7 @@ def post_process(
     pcp2json_cmd = [
         "/usr/bin/pcp2json",
         "-E",
+        "--ignore-unknown",
     ]
 
     pcp2json_cmd.extend(pcp2_flags)
