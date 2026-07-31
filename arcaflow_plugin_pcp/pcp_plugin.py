@@ -16,8 +16,22 @@ from pcp_schema import (
     post_process_params_schema,
     PostProcessParams,
     PerfOutput,
+    FlatPerfOutput,
     Error,
 )
+
+
+def get_pcp_version() -> str:
+    try:
+        cmd_out = subprocess.check_output(
+            ["pcp", "--version"],
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        # Output is like "pcp version X.Y.Z\n..."
+        return cmd_out.strip().splitlines()[0].split()[-1]
+    except (subprocess.CalledProcessError, FileNotFoundError, IndexError):
+        return "unknown"
 
 
 def run_oneshot_cmd(command_list):
@@ -57,7 +71,7 @@ class StartPcpStep:
             "Runs the PCP data collection and then processes the results into a "
             "machine-readable format"
         ),
-        outputs={"success": PerfOutput, "error": Error},
+        outputs={"success": PerfOutput, "success_flat": FlatPerfOutput, "error": Error},
         signal_handler_method_names=["cancel_step"],
         signal_emitters=[],
         step_object_constructor=lambda: StartPcpStep(),
@@ -65,7 +79,7 @@ class StartPcpStep:
     def run_pcp(
         self,
         params: PcpInputParams,
-    ) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+    ) -> typing.Tuple[str, typing.Union[PerfOutput, FlatPerfOutput, Error]]:
 
         # Start the PCMD daemon
         pcmd_cmd = [
@@ -162,11 +176,11 @@ class StartPcpStep:
     id="post-process",
     name="Post-Process PCP Archive",
     description="Processes an existing PCP archive into a machine-readable format",
-    outputs={"success": PerfOutput, "error": Error},
+    outputs={"success": PerfOutput, "success_flat": FlatPerfOutput, "error": Error},
 )
 def post_process(
     params: PostProcessParams,
-) -> typing.Tuple[str, typing.Union[PerfOutput, Error]]:
+) -> typing.Tuple[str, typing.Union[PerfOutput, FlatPerfOutput, Error]]:
 
     # Parse metrics from input
     metrics = params.pmlogger_metrics.split()
@@ -235,7 +249,7 @@ def post_process(
             reader = csv.DictReader(pcp2csv_return.splitlines())
             pcp_metrics_list = list(reader)
 
-        else:
+        elif not params.flatten:
             pcp2json_status, pcp2json_return = run_oneshot_cmd(pcp2json_cmd)
             if "error" in pcp2json_status:
                 # If the pcp2json command fails, we first attempt to retry.
@@ -253,7 +267,10 @@ def post_process(
             print(pcp2csv_return)
 
         # If pcp2json or pcp2csv completes without an exception, we return success.
-        return "success", PerfOutput(pcp_metrics_list)
+        pcp_version = get_pcp_version()
+        if params.flatten:
+            return "success_flat", FlatPerfOutput(pcp_version, pcp_metrics_list)
+        return "success", PerfOutput(pcp_version, pcp_metrics_list)
 
     # Return the appropriate error condition after max_retries
     if "error" in pcp2json_status:
