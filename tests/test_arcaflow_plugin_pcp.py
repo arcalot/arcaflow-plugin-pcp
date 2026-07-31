@@ -33,6 +33,7 @@ class PCPTest(unittest.TestCase):
         # Normal output
         plugin.test_object_serialization(
             pcp_plugin.PerfOutput(
+                pcp_version="6.0.0",
                 pcp_output=[
                     {
                         "@interval": "0",
@@ -86,7 +87,8 @@ class PCPTest(unittest.TestCase):
 
         # Flattened output
         plugin.test_object_serialization(
-            pcp_plugin.PerfOutput(
+            pcp_plugin.FlatPerfOutput(
+                pcp_version="6.0.0",
                 pcp_output=[
                     {
                         "Time": "2024-01-17T17:36:49.989464",
@@ -156,11 +158,24 @@ class PCPTest(unittest.TestCase):
                     params=input, run_id="ci_pcp"
                 )
 
-                self.assertEqual("success", output_id)
-                plugin.test_object_serialization(
-                    pcp_plugin.PerfOutput(output_data.pcp_output),
-                    fail=lambda _: self.fail("Output failed schema validation"),
-                )
+                if test.get("flatten"):
+                    self.assertEqual("success_flat", output_id)
+                    plugin.test_object_serialization(
+                        pcp_plugin.FlatPerfOutput(
+                            output_data.pcp_version,
+                            output_data.pcp_output,
+                        ),
+                        fail=lambda _: self.fail("Output failed schema validation"),
+                    )
+                else:
+                    self.assertEqual("success", output_id)
+                    plugin.test_object_serialization(
+                        pcp_plugin.PerfOutput(
+                            output_data.pcp_version,
+                            output_data.pcp_output,
+                        ),
+                        fail=lambda _: self.fail("Output failed schema validation"),
+                    )
 
     def test_functional_post(self):
         input = pcp_plugin.PostProcessParams(
@@ -174,7 +189,7 @@ class PCPTest(unittest.TestCase):
             params=input, run_id="ci_pcp_post"
         )
 
-        self.assertEqual("success", output_id)
+        self.assertEqual("success_flat", output_id)
         self.assertEqual(31740816, int(output_data.pcp_output[1]["mem.util.used"]))
 
 

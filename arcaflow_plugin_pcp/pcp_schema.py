@@ -105,10 +105,31 @@ post_process_params_schema = plugin.build_object_schema(PostProcessParams)
 
 @dataclass
 class PerfOutput:
+    pcp_version: typing.Annotated[
+        str,
+        schema.name("PCP version"),
+        schema.description("The version of the PCP package"),
+    ]
     pcp_output: typing.Annotated[
-        typing.List[typing.Any],
+        typing.List[typing.Dict[str, typing.Any]],
         schema.name("PCP output list"),
-        schema.description("List of of performance data in intervals from PCP"),
+        schema.description("List of performance data in intervals from PCP"),
+    ]
+
+
+@dataclass
+class FlatPerfOutput:
+    pcp_version: typing.Annotated[
+        str,
+        schema.name("PCP version"),
+        schema.description("The version of the PCP package"),
+    ]
+    pcp_output: typing.Annotated[
+        typing.List[typing.Dict[str, str]],
+        schema.name("PCP flattened output list"),
+        schema.description(
+            "List of flattened performance data in intervals from PCP"
+        ),
     ]
 
 
